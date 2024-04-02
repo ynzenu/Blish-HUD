@@ -1,17 +1,13 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Blish_HUD.Graphics.UI;
 using Blish_HUD.Modules.Pkgs;
 using Blish_HUD.Modules.UI.Views;
-using Flurl.Http;
 using Version = SemVer.Version;
 
 namespace Blish_HUD.Modules.UI.Presenters {
     public class ManagePkgPresenter : Presenter<ManagePkgView, IGrouping<string, PkgManifest>> {
-
-        private static readonly Logger Logger = Logger.GetLogger<ManagePkgPresenter>();
 
         private ModuleManager _existingModule;
 
@@ -28,12 +24,8 @@ namespace Blish_HUD.Modules.UI.Presenters {
         }
 
         private Version GetDefaultVersion() {
-            if (_existingModule != null) {
-                if (this.Model.Any(m => m.Version == _existingModule.Manifest.Version)) {
-                    return _existingModule.Manifest.Version;
-                }
-            }
-
+            // It seems to be a better user experience to always default to the latest for
+            // those that want to quickly update.
             return this.Model.Max(m => m.Version);
         }
 
@@ -48,6 +40,7 @@ namespace Blish_HUD.Modules.UI.Presenters {
             this.View.ModuleNamespace   = _selectedVersion.Namespace;
             this.View.ModuleContributor = _selectedVersion.Contributors[0];
             this.View.SelectedVersion   = _selectedVersion.Version;
+            this.View.IsPreviewVersion  = _selectedVersion.IsPreview;
 
             if (_selectedVersion is PkgManifestV1 pkgv1) {
                 this.View.ModuleDescription = pkgv1.Description;

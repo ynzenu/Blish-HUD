@@ -12,7 +12,7 @@ namespace Blish_HUD {
 
         private static ApplicationSettings _instance;
 
-        internal static ApplicationSettings Instance => _instance;
+        public static ApplicationSettings Instance => _instance;
 
         public bool CliExitEarly => this.UserFacingExceptionThrown || this.HelpInvoked;
 
@@ -45,7 +45,9 @@ namespace Blish_HUD {
          * P, pid       - The PID of the process to overlay.
          * r, ref       - The path to the ref.dat file.
          * s, settings  - The path where Blish HUD will save settings and other files.
+         * a, progdata  - The path where Blish HUD will save non-user data.
          * w, window    - The name of the window to overlay.
+         * g, startgw2  - The start mode for Gw2 (0 = don't start, 1 = start gw2, 2 = start gw2 autologin).
          */
 
         #region Game Integration
@@ -94,6 +96,17 @@ namespace Blish_HUD {
 
         #region Utility
 
+        public const string OPTION_STARTGW2 = "startgw2";
+        /// <summary>
+        /// If we should launch Gw2 as part of Blish HUD launching.
+        /// 0 = no, 1 = yes, and 2 = yes with autologin.
+        /// </summary>
+        [
+            OptionParameter(OPTION_STARTGW2, 'g'),
+            Help("Allows you to launch Guild Wars 2 with Blish HUD (0 = don't start, 1 = start gw2, 2 = start gw2 autologin).")
+        ]
+        public int StartGw2 { get; private set; }
+
         public const string OPTION_USERSETTINGSPATH = "settings";
         /// <summary>
         /// The path where Blish HUD will save settings and other files.
@@ -104,15 +117,25 @@ namespace Blish_HUD {
         ]
         public string UserSettingsPath { get; private set; }
 
+        public const string OPTION_PROGRAMDATA = "progdata";
+        /// <summary>
+        /// The path used by Blish HUD to store non-user data related to the application.
+        /// </summary>
+        [
+            OptionParameter(OPTION_PROGRAMDATA, 'a'),
+            Help("The path used by Blish HUD to store non-user data related to the application.")
+        ]
+        public string ProgramDataPath { get; private set; }
+
         public const string OPTION_REFPATH = "ref";
         /// <summary>
         /// The path to the ref.dat file.
         /// </summary>
         [
-            OptionParameter("ref", 'r'),
+            OptionParameter(OPTION_REFPATH, 'r'),
             Help("The path to the ref.dat file.")
         ]
-        public string RefPath { get; private set; }
+        public string RefPath { get; private set; } = "ref.dat";
 
         public const string OPTION_TARGETFRAMERATE = "maxfps";
         /// <summary>
@@ -130,9 +153,8 @@ namespace Blish_HUD {
         /// </summary>
         [
             Option(OPTION_UNLOCKFPS, 'F'),
-            Help("Deprecated as of v0.8.0.  Instead use the 'Frame Limiter' setting found in the Blish HUD graphics settings section.")
+            Help("Unlocks the frame limit allowing Blish HUD to render as fast as possible.  This will cause higher CPU and GPU utilization.")
         ]
-        [Obsolete("Deprecated as of v0.8.0.  Instead use the 'Frame Limiter' setting found in the Blish HUD graphics settings section.")]
         public bool UnlockFps { get; private set; }
 
         #endregion

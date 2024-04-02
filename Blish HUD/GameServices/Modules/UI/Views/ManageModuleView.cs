@@ -75,6 +75,8 @@ namespace Blish_HUD.Modules.UI.Views {
             }
         }
 
+        public string ModuleErrorReason { get; set; }
+
         private ModuleRunState _moduleRunState = ModuleRunState.Unloaded;
         public ModuleRunState ModuleState {
             get => _moduleRunState;
@@ -83,7 +85,7 @@ namespace Blish_HUD.Modules.UI.Views {
 
                 var (status, color) = _moduleStatusLookup[_moduleRunState];
 
-                UpdateModuleRunState(status, color);
+                UpdateModuleRunState(status, color, _moduleRunState == ModuleRunState.FatalError ? this.ModuleErrorReason : null);
 
                 UpdateHeaderLayout();
             }
@@ -148,6 +150,11 @@ namespace Blish_HUD.Modules.UI.Views {
             }
         }
 
+        public void SetCustomState(string status, Color color) {
+            UpdateModuleRunState(status, color);
+            UpdateHeaderLayout();
+        }
+
         protected override void Build(Container buildPanel) {
             // Header
 
@@ -171,7 +178,7 @@ namespace Blish_HUD.Modules.UI.Views {
             };
 
             _moduleHeaderLabel = new Image() {
-                Texture  = GameService.Content.GetTexture("358411"),
+                Texture  = AsyncTexture2D.FromAssetId(358411),
                 Location = new Point(0,   _moduleTextLabel.Bottom - 6),
                 Size     = new Point(875, 110),
                 Parent   = buildPanel
@@ -320,6 +327,7 @@ namespace Blish_HUD.Modules.UI.Views {
             };
 
             _settingView = new ViewContainer() {
+                Size             = settingPanelRoot.ContentRegion.Size,
                 CanScroll        = true,
                 HeightSizingMode = SizingMode.Fill,
                 WidthSizingMode  = SizingMode.Fill,
@@ -330,8 +338,8 @@ namespace Blish_HUD.Modules.UI.Views {
 
             _settingsButton = new GlowButton() {
                 Location         = new Point(_enableButton.Right + 12, _enableButton.Top),
-                Icon             = GameService.Content.GetTexture("common/157109"),
-                ActiveIcon       = GameService.Content.GetTexture("common/157110"),
+                Icon             = AsyncTexture2D.FromAssetId(157109),
+                ActiveIcon       = AsyncTexture2D.FromAssetId(157110),
                 Visible          = false,
                 BasicTooltipText = Strings.Common.Options,
                 Parent           = buildPanel
@@ -345,9 +353,10 @@ namespace Blish_HUD.Modules.UI.Views {
             _moduleStateLabel.Location   = new Point(_moduleVersionLabel.Right + 8, _moduleNameLabel.Top);
         }
 
-        private void UpdateModuleRunState(string status, Color color) {
+        private void UpdateModuleRunState(string status, Color color, string tooltip = null) {
             _moduleStateLabel.Text      = status;
             _moduleStateLabel.TextColor = color;
+            _moduleStateLabel.BasicTooltipText = tooltip;
         }
 
     }

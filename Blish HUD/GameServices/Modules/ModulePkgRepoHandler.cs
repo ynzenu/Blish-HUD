@@ -13,9 +13,9 @@ using Flurl.Http;
 using Humanizer;
 
 namespace Blish_HUD.Modules {
-    public class ModulePkgRepoHandler : ServiceModule<ModuleService> {
+    public sealed class ModulePkgRepoHandler : ServiceModule<ModuleService> {
 
-        private static Logger Logger = Logger.GetLogger<ModulePkgRepoHandler>();
+        private static readonly Logger Logger = Logger.GetLogger<ModulePkgRepoHandler>();
 
         // TODO: ModuleRepos should be made to handle multiple repos - not just our public one
 
@@ -54,7 +54,7 @@ namespace Blish_HUD.Modules {
         private MenuItem         _repoMenuItem;
         private IPkgRepoProvider _defaultRepoProvider;
 
-        public ModulePkgRepoHandler(ModuleService service) : base(service) { /* NOOP */ }
+        internal ModulePkgRepoHandler(ModuleService service) : base(service) { /* NOOP */ }
         
         public override void Load() {
             DefineModuleRepoSettings(GameService.Settings.RegisterRootSettingCollection(REPO_SETTINGS));
@@ -80,7 +80,7 @@ namespace Blish_HUD.Modules {
         }
 
         private View GetRepoView(MenuItem repoMenuItem) {
-            AcknowlegePendingModuleUpdates();
+            AcknowledgePendingModuleUpdates();
 
             return new ModuleRepoView(_defaultRepoProvider);
         }
@@ -88,10 +88,8 @@ namespace Blish_HUD.Modules {
         #region Module Update Indicators
 
         private bool GetUpdateIsNotAcknowledged(PkgManifest modulePkg) {
-            if (_acknowledgedUpdates.TryGetSetting(modulePkg.Namespace, out var setting)) {
-                if (setting is SettingEntry<string> acknowledgedModuleUpdate) {
-                    return modulePkg.Version > new SemVer.Version(acknowledgedModuleUpdate.Value, true);
-                }
+            if (_acknowledgedUpdates.TryGetSetting(modulePkg.Namespace, out var setting) && setting is SettingEntry<string> acknowledgedModuleUpdate) {
+                return modulePkg.Version > new SemVer.Version(acknowledgedModuleUpdate.Value, true);
             }
 
             return true;
@@ -100,7 +98,7 @@ namespace Blish_HUD.Modules {
         private void RefreshUpdateIndicatorStates() {
             // TODO: Blish HUD icon should be handled in the Overlay service - this will likely have to wait for the old TabbedWindow to get replaced with the new one.
 
-            if (this.UnacknowledgedUpdates.Any()) {
+            if (this.UnacknowledgedUpdates.Any(module => GameService.Overlay.ShowPreviews.Value || !module.IsPreview)) {
                 // settings menu item indicator
                 _repoMenuItem.Text             = $"{Strings.GameServices.Modules.RepoAndPkgManagement.PkgRepoSection} ({Strings.GameServices.ModulesService.PkgManagement_Update.ToQuantity(_pendingUpdates.Length)})";
                 _repoMenuItem.Icon             = GameService.Content.GetTexture(TEXTUREREF_REPOMENU_PENDINGUPDATE);
@@ -121,14 +119,14 @@ namespace Blish_HUD.Modules {
             }
         }
 
-        private void AcknowlegePendingModuleUpdates() {
+        private void AcknowledgePendingModuleUpdates() {
             // Mark all updates as acknowledged
-            foreach (var unacknowlegedModuleUpdate in this.UnacknowledgedUpdates) {
-                if (!_acknowledgedUpdates.TryGetSetting<string>(unacknowlegedModuleUpdate.Namespace, out SettingEntry<string> acknowledgementEntry)) {
-                    acknowledgementEntry = _acknowledgedUpdates.DefineSetting(unacknowlegedModuleUpdate.Namespace, "0.0.0");
+            foreach (var unacknowledgedModuleUpdate in this.UnacknowledgedUpdates) {
+                if (!_acknowledgedUpdates.TryGetSetting<string>(unacknowledgedModuleUpdate.Namespace, out SettingEntry<string> acknowledgementEntry)) {
+                    acknowledgementEntry = _acknowledgedUpdates.DefineSetting(unacknowledgedModuleUpdate.Namespace, "0.0.0");
                 }
 
-                acknowledgementEntry.Value = unacknowlegedModuleUpdate.Version.ToString();
+                acknowledgementEntry.Value = unacknowledgedModuleUpdate.Version.ToString();
             }
 
             RefreshUpdateIndicatorStates();
@@ -190,7 +188,7 @@ namespace Blish_HUD.Modules {
 
             var installResult = await InstallPackage(pkgManifest, existingModule, progress);
 
-            if (wasEnabled && existingModule != null) {
+            if (wasEnabled) {
                 // Ensure that module is set to enabled for when Blish HUD restarts
                 GameService.Module.ModuleStates.Value[existingModule.Manifest.Namespace].Enabled = true;
                 GameService.Settings.Save();

@@ -51,7 +51,7 @@ namespace Blish_HUD.Modules {
         [Import]
         public Module ModuleInstance { get; private set; }
 
-        public ModuleManager(Manifest manifest, ModuleState state, IDataReader dataReader) {
+        internal ModuleManager(Manifest manifest, ModuleState state, IDataReader dataReader) {
             this.Manifest   = manifest;
             this.State      = state;
             this.DataReader = dataReader;
@@ -64,7 +64,10 @@ namespace Blish_HUD.Modules {
         }
 
         public bool TryEnable() {
-            if (this.Enabled || this.IsModuleAssemblyStateDirty) return false;
+            if (this.Enabled                                             // We're already enabled.
+             || this.IsModuleAssemblyStateDirty                          // User updated the module after the old assembly had already been enabled.
+             || GameService.Module.ModuleIsExplicitlyIncompatible(this)) // Module is on the explicit "incompatibile" list.
+                return false;
 
             var moduleParams = ModuleParameters.BuildFromManifest(this.Manifest, this);
 
@@ -110,7 +113,17 @@ namespace Blish_HUD.Modules {
 
             this.Enabled = false;
 
-            this.ModuleInstance?.Dispose();
+            try {
+                this.ModuleInstance?.Dispose();
+            } catch (Exception ex) {
+                Logger.GetLogger(this.ModuleInstance != null ? this.ModuleInstance.GetType() : typeof(ModuleManager)).Error(ex, "Module {module} threw an exception while unloading.", this.Manifest.GetDetailedName());
+                
+                if (ApplicationSettings.Instance.DebugEnabled) {
+                    // To assist in debugging modules
+                    throw;
+                }
+            }
+
             this.ModuleInstance = null;
             
             this.ModuleDisabled?.Invoke(this, EventArgs.Empty);
@@ -231,6 +244,9 @@ namespace Blish_HUD.Modules {
             Disable();
 
             GameService.Module.UnregisterModule(this);
+
+            this.ModuleEnabled = null;
+            this.ModuleEnabled = null;
 
             _moduleAssembly = null;
 

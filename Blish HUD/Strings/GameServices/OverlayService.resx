@@ -1,76 +1,96 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
-		Microsoft ResX Schema
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
 
-		Version 1.3
-
-		The primary goals of this format is to allow a simple XML format 
-		that is mostly human readable. The generation and parsing of the 
-		various data types are done through the TypeConverter classes 
-		associated with the data types.
-
-		Example:
-
-		... ado.net/XML headers & schema ...
-		<resheader name="resmimetype">text/microsoft-resx</resheader>
-		<resheader name="version">1.3</resheader>
-		<resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-		<resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-		<data name="Name1">this is my long string</data>
-		<data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-		<data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-			[base64 mime encoded serialized .NET Framework object]
-		</data>
-		<data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-			[base64 mime encoded string representing a byte array form of the .NET Framework object]
-		</data>
-
-		There are any number of "resheader" rows that contain simple 
-		name/value pairs.
-
-		Each data row contains a name, and value. The row also contains a 
-		type or mimetype. Type corresponds to a .NET class that support 
-		text/value conversion through the TypeConverter architecture. 
-		Classes that don't support this are serialized and stored with the 
-		mimetype set.
-
-		The mimetype is used for serialized objects, and tells the 
-		ResXResourceReader how to depersist the object. This is currently not 
-		extensible. For a given mimetype the value must be set accordingly:
-
-		Note - application/x-microsoft.net.object.binary.base64 is the format 
-		that the ResXResourceWriter will generate, however the reader can 
-		read any of the formats listed below.
-
-		mimetype: application/x-microsoft.net.object.binary.base64
-		value   : The object must be serialized with 
-			: System.Serialization.Formatters.Binary.BinaryFormatter
-			: and then encoded with base64 encoding.
-
-		mimetype: application/x-microsoft.net.object.soap.base64
-		value   : The object must be serialized with 
-			: System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-			: and then encoded with base64 encoding.
-
-		mimetype: application/x-microsoft.net.object.bytearray.base64
-		value   : The object must be serialized into a byte array 
-			: using a System.ComponentModel.TypeConverter
-			: and then encoded with base64 encoding.
-	-->
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
           <xsd:element name="data">
             <xsd:complexType>
               <xsd:sequence>
                 <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
                 <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
               <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
               <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
@@ -89,13 +109,13 @@
     <value>text/microsoft-resx</value>
   </resheader>
   <resheader name="version">
-    <value>1.3</value>
+    <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="HomeTab" xml:space="preserve">
     <value>Home</value>
@@ -155,5 +175,153 @@ trademarks are the property of their respective owners.</value>
   </data>
   <data name="Setting_AudioDevice_Description" xml:space="preserve">
     <value>This determines the Audio output device used by Blish HUD. The Gw2OutputDevice adjusts itself to whatever GW2 is using.</value>
+  </data>
+  <data name="Setting_CloseWindowOnEscape_Description" xml:space="preserve">
+    <value>Closes Blish windows when focused and escape key is pressed</value>
+  </data>
+  <data name="Setting_CloseWindowOnEscape_DisplayName" xml:space="preserve">
+    <value>Close Window on Escape</value>
+  </data>
+  <data name="Setting_HideInterfaceKeybind_Description" xml:space="preserve">
+    <value>Hide all of Blish interface for marvelous screenshots</value>
+  </data>
+  <data name="Setting_HideInterfaceKeybind_DisplayName" xml:space="preserve">
+    <value>Hide interface</value>
+  </data>
+  <data name="ConnectionStatus_Mumble_Name" xml:space="preserve">
+    <value>MumbleLink</value>
+  </data>
+  <data name="ConnectionStatus_Mumble_Disconnected" xml:space="preserve">
+    <value>Unable to connect to MumbleLink with name '{0}'.
+
+Check what launch arguments were used
+to launch both Guild Wars 2 and Blish HUD.</value>
+  </data>
+  <data name="ConnectionStatus_Mumble_Connected" xml:space="preserve">
+    <value>Connected to MumbleLink with name '{0}'.</value>
+  </data>
+  <data name="ConnectionStatus_ArcDPSBridge_Name" xml:space="preserve">
+    <value>ArcDPS Bridge</value>
+  </data>
+  <data name="ConnectionStatus_ArcDPSBridge_Connected" xml:space="preserve">
+    <value>Connected to ArcDPS via bridge plugin.</value>
+  </data>
+  <data name="ConnectionStatus_ArcDPSBridge_Disconnected" xml:space="preserve">
+    <value>No connection received from bridge.
+
+It might not be installed.</value>
+  </data>
+  <data name="Setting_ToggleBlishWindowKeybind_Description" xml:space="preserve">
+    <value>Set keybind to toggle the main window of Blish HUD</value>
+  </data>
+  <data name="Setting_ToggleBlishWindowKeybind_DisplayName" xml:space="preserve">
+    <value>Toggle Blish HUD window</value>
+  </data>
+  <data name="Setting_DynamicHUDMenuBar_Description" xml:space="preserve">
+    <value>Controls visibility of the Menu bar located in the upper-left of the screen.</value>
+  </data>
+  <data name="Setting_DynamicHUDMenuBar_DisplayName" xml:space="preserve">
+    <value>Menu Bar</value>
+  </data>
+  <data name="SelfUpdate_NewUpdateAvailable" xml:space="preserve">
+    <value>New Release Available</value>
+  </data>
+  <data name="SelfUpdate_ChangesInVersion" xml:space="preserve">
+    <value>Changes in v{0}</value>
+  </data>
+  <data name="SelfUpdate_UpdateToReleaseMenuStripText" xml:space="preserve">
+    <value>Update to Release v{0}</value>
+  </data>
+  <data name="SelfUpdate_UpdateToPrereleaseMenuStripText" xml:space="preserve">
+    <value>Update to Prerelease v{0}</value>
+  </data>
+  <data name="SelfUpdate_NoPendingUpdates" xml:space="preserve">
+    <value>No Pending Updates</value>
+  </data>
+  <data name="SelfUpdate_Progress_DownloadingReleaseArchive" xml:space="preserve">
+    <value>Downloading release v{0}...</value>
+  </data>
+  <data name="SelfUpdate_Progress_VerifyingChecksum" xml:space="preserve">
+    <value>Verifying checksum...</value>
+  </data>
+  <data name="SelfUpdate_Progress_ExtractingExecutable" xml:space="preserve">
+    <value>Extracting new executable...</value>
+  </data>
+  <data name="SelfUpdate_Progress_DownloadingPrereleaseArchive" xml:space="preserve">
+    <value>Downloading prerelease v{0}...</value>
+  </data>
+  <data name="SelfUpdate_PendingUpdatesQueryFailed" xml:space="preserve">
+    <value>Failed to Check for Updates</value>
+  </data>
+  <data name="SelfUpdate_Progress_RestartingIn" xml:space="preserve">
+    <value>Restarting in {0}...</value>
+  </data>
+  <data name="SelfUpdate_Progress_Restarting" xml:space="preserve">
+    <value>Restarting...</value>
+  </data>
+  <data name="Setting_InteractKey_Description" xml:space="preserve">
+    <value>Used for interacting with the environment.
+For the best experience set this to the same key as in the game.</value>
+  </data>
+  <data name="Setting_InteractKey_DisplayName" xml:space="preserve">
+    <value>Interact</value>
+  </data>
+  <data name="Setting_ShowPreviews_DisplayName" xml:space="preserve">
+    <value>Preview Releases</value>
+  </data>
+  <data name="Setting_ShowPreviews_Description" xml:space="preserve">
+    <value>If enabled, prerelease versions of both modules and Blish HUD itself become available through the interface.
+
+WARNING: Prerelease modules or Blish HUD versions may be unstable.  By enabling this feature, you acknowledge that you'd like to be a guinea pig.  Do not use prerelease modules / versions of Blish HUD unless you're willing to experience crashes, bugs, or other issues.</value>
+  </data>
+  <data name="OverlayDynamicHUDSection" xml:space="preserve">
+    <value>Dynamic HUD</value>
+  </data>
+  <data name="Setting_DynamicHUDLoading_Description" xml:space="preserve">
+    <value>Controls visibility during cut scenes and loading screens.</value>
+  </data>
+  <data name="Setting_DynamicHUDLoading_DisplayName" xml:space="preserve">
+    <value>Cut Scene / Loading Screen</value>
+  </data>
+  <data name="Setting_DynamicHUDWindows_Description" xml:space="preserve">
+    <value>Controls visibility of the windows.</value>
+  </data>
+  <data name="Setting_DynamicHUDWindows_DisplayName" xml:space="preserve">
+    <value>Windows</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="AboutThirdPartySoftware" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\obj\ThirdPartySoftware.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="AboutThirdPartySoftwareHeading" xml:space="preserve">
+    <value>Software Licences</value>
+  </data>
+  <data name="Setting_StayInTray_AppendDisabled" xml:space="preserve">
+    <value> (Disabled because you launched Blish HUD with --startgw2, --pid, -g, or -P)</value>
+  </data>
+  <data name="About_DiscordCallToAction1" xml:space="preserve">
+    <value> 
+The majority of Blish HUD's feedback, development, and other discussions take place in our</value>
+    
+  </data>
+  <data name="About_DiscordCallToAction2" xml:space="preserve">
+    <value>Discord</value>
+    
+  </data>
+  <data name="About_DiscordCallToAction3" xml:space="preserve">
+    <value> channel.
+ </value>
+    
+  </data>
+  <data name="About_DiscordCallToAction_Question" xml:space="preserve">
+    <value> 
+Need help or just want to
+participate in the conversation?</value>
+  </data>
+  <data name="About_DiscordCallToAction_Button" xml:space="preserve">
+    <value>Join our Discord</value>
+  </data>
+  <data name="SelfUpdate_NewPrereleaseAvailable" xml:space="preserve">
+    <value>New Prerelease Available</value>
   </data>
 </root>

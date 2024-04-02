@@ -19,7 +19,7 @@ namespace Blish_HUD.Strings.GameServices {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class GraphicsService {
@@ -106,7 +106,7 @@ namespace Blish_HUD.Strings.GameServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to (Disabled because Blish HUD was started with --maxfps specified).
+        ///   Looks up a localized string similar to (Disabled because Blish HUD was started with --maxfps/--unlockfps specified).
         /// </summary>
         internal static string Setting_FramerateLimiter_Locked_Description {
             get {
@@ -133,20 +133,21 @@ namespace Blish_HUD.Strings.GameServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enabling Vsync limits the frame rate of Blish HUD to the monitor refresh rate to prevent screen tearing..
+        ///   Looks up a localized string similar to Determines the scaling of the UI. Either sync with game or set manually.
+        ///NOTE: &apos;Automatic&apos; will only update while logged in with a character.
         /// </summary>
-        internal static string Setting_Vsync_Description {
+        internal static string Setting_UIScaling_Description {
             get {
-                return ResourceManager.GetString("Setting_Vsync_Description", resourceCulture);
+                return ResourceManager.GetString("Setting_UIScaling_Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable Vsync.
+        ///   Looks up a localized string similar to Interface Size.
         /// </summary>
-        internal static string Setting_Vsync_DisplayName {
+        internal static string Setting_UIScaling_DisplayName {
             get {
-                return ResourceManager.GetString("Setting_Vsync_DisplayName", resourceCulture);
+                return ResourceManager.GetString("Setting_UIScaling_DisplayName", resourceCulture);
             }
         }
     }

@@ -19,7 +19,7 @@ namespace Blish_HUD.Controls {
 
         private static Thickness _contentEdgeBuffer;
 
-        private static List<Tooltip> _allTooltips;
+        private static ControlCollection<Tooltip> _allTooltips;
 
         private static Texture2D _textureTooltip;
 
@@ -28,14 +28,14 @@ namespace Blish_HUD.Controls {
 
             _textureTooltip = Content.GetTexture("tooltip");
 
-            _allTooltips = new List<Tooltip>();
+            _allTooltips = new ControlCollection<Tooltip>();
 
             ActiveControlChanged   += ControlOnActiveControlChanged;
             Input.Mouse.MouseMoved += HandleMouseMoved;
         }
 
         private static void HandleMouseMoved(object sender, MouseEventArgs e) {
-            if (ActiveControl?.Tooltip != null) {
+            if (ActiveControl?.Tooltip != null && GameService.Input.Mouse.CursorIsVisible) {
                 ActiveControl.Tooltip.CurrentControl = ActiveControl;
                 UpdateTooltipPosition(ActiveControl.Tooltip);
 
@@ -248,6 +248,11 @@ namespace Blish_HUD.Controls {
 
         protected override void DisposeControl() {
             this.CurrentView?.DoUnload();
+
+            foreach (var control in _children) {
+                control.Resized -= Invalidate;
+                control.Moved   -= Invalidate;
+            }
 
             base.DisposeControl();
         }

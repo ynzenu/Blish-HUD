@@ -55,7 +55,7 @@ namespace Blish_HUD.GameIntegration {
         /// </summary>
         public MMDevice AudioDevice { get; private set; }
 
-        public AudioIntegration(GameIntegrationService service) : base(service) {
+        internal AudioIntegration(GameIntegrationService service) : base(service) {
             _audioEndpointNotificationReceiver = new AudioEndpointNotificationReceiver();
             _deviceEnumerator = new MMDeviceEnumerator();
         }
@@ -168,7 +168,22 @@ namespace Blish_HUD.GameIntegration {
 
             _gw2AudioDevices.Clear();
             foreach (var device in _deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)) {
-                var sessionEnumerator = device.AudioSessionManager.Sessions;
+                SessionCollection sessionEnumerator = null;
+
+                try {
+                    sessionEnumerator = device.AudioSessionManager.Sessions;
+                } catch (COMException ex) when ((uint)ex.HResult == 0x88890008) {
+                    // Skip this audio device.  Something about it is unsupported.
+                    continue;
+                } catch (COMException ex) when ((uint)ex.HResult == 0x80040154) {
+                    // Skip this audio device.  Something about it is unsupported.
+                    continue;
+                } catch (COMException ex) when ((uint)ex.HResult == 0x80070490) {
+                    // Skip this audio device.  Something about it is unsupported.
+                    continue;
+                } catch (Exception) {
+                    continue; 
+                }
 
                 bool shouldDispose = true;
                 for (int i = 0; i < sessionEnumerator.Count; i++) {

@@ -45,8 +45,8 @@ namespace Blish_HUD.Settings.UI.Views {
         }
 
         private void StringTextboxOnInputFocusChanged(object sender, ValueEventArgs<bool> e) {
-            if (e.Value == false) {
-                this.OnValueChanged(new ValueEventArgs<string>(_stringTextbox.Text));
+            if (!e.Value) {
+                OnValueChanged(new ValueEventArgs<string>(_stringTextbox.Text));
             }
         }
 
@@ -69,6 +69,7 @@ namespace Blish_HUD.Settings.UI.Views {
         }
 
         protected override void RefreshDescription(string description) {
+            _displayNameLabel.BasicTooltipText = description;
             _stringTextbox.BasicTooltipText = description;
         }
 
@@ -77,7 +78,9 @@ namespace Blish_HUD.Settings.UI.Views {
         }
 
         protected override void Unload() {
-            _stringTextbox.InputFocusChanged -= StringTextboxOnInputFocusChanged;
+            if (_stringTextbox != null) {
+                _stringTextbox.InputFocusChanged -= StringTextboxOnInputFocusChanged;
+            }
         }
 
     }

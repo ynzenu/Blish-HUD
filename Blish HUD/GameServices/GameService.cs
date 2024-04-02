@@ -6,7 +6,23 @@ using Blish_HUD.GameServices;
 namespace Blish_HUD {
     public abstract class GameService {
 
-        private static readonly GameService[] _allServices;
+        private static readonly GameService[] _allServices = new GameService[] {
+            Settings        = new SettingsService(),
+            Debug           = new DebugService(),
+            Input           = new InputService(),
+            Content         = new ContentService(),
+            Gw2Mumble       = new Gw2MumbleService(),
+            Gw2WebApi       = new Gw2WebApiService(),
+            Animation       = new AnimationService(),
+            Graphics        = new GraphicsService(),
+            Overlay         = new OverlayService(),
+            GameIntegration = new GameIntegrationService(),
+            ArcDpsV2          = new ArcDpsServiceV2(), // This needs to be initialized bf the V1
+            ArcDps          = new ArcDpsService(),
+            Contexts        = new ContextsService(),
+            Module          = new ModuleService()
+        };
+
         public static IReadOnlyList<GameService> All => _allServices;
 
         public event EventHandler<EventArgs> FinishedLoading;
@@ -26,17 +42,17 @@ namespace Blish_HUD {
 
         private IServiceModule[] _serviceModules = Array.Empty<IServiceModule>();
 
-        protected void SetServiceModules(params IServiceModule[] serviceModules) {
+        internal void SetServiceModules(params IServiceModule[] serviceModules) {
             _serviceModules = serviceModules ?? Array.Empty<IServiceModule>();
         }
 
-        public void DoInitialize(BlishHud game) {
+        internal void DoInitialize(BlishHud game) {
             ActiveBlishHud = game;
 
             Initialize();
         }
 
-        public void DoLoad() {
+        internal void DoLoad() {
             Load();
 
             foreach (var serviceModule in _serviceModules) {
@@ -47,7 +63,7 @@ namespace Blish_HUD {
             OnFinishedLoading(EventArgs.Empty);
         }
 
-        public void DoUnload() {
+        internal void DoUnload() {
             foreach (var serviceModule in _serviceModules) {
                 serviceModule.Unload();
             }
@@ -57,7 +73,7 @@ namespace Blish_HUD {
             this.Loaded = false;
         }
 
-        public void DoUpdate(GameTime gameTime) {
+        internal void DoUpdate(GameTime gameTime) {
             foreach (var serviceModule in _serviceModules) {
                 serviceModule.Update(gameTime);
             }
@@ -77,31 +93,12 @@ namespace Blish_HUD {
         public static readonly OverlayService         Overlay;
         public static readonly InputService           Input;
         public static readonly GameIntegrationService GameIntegration;
-        public static readonly ModuleService          Module;
         public static readonly ArcDpsService          ArcDps;
+        public static readonly ArcDpsServiceV2        ArcDpsV2;
         public static readonly ContextsService        Contexts;
+        public static readonly ModuleService          Module;
 
         #endregion
-
-        static GameService() {
-            // Init game services
-            _allServices = new GameService[] {
-                Debug           = new DebugService(),
-                Input           = new InputService(),
-                Settings        = new SettingsService(),
-                Content         = new ContentService(),
-                Gw2Mumble       = new Gw2MumbleService(),
-                Gw2WebApi       = new Gw2WebApiService(),
-                Animation       = new AnimationService(),
-                Graphics        = new GraphicsService(),
-                Overlay         = new OverlayService(),
-                GameIntegration = new GameIntegrationService(),
-                Module          = new ModuleService(),
-                ArcDps          = new ArcDpsService(),
-                Contexts        = new ContextsService()
-            };
-
-        }
 
     }
 }

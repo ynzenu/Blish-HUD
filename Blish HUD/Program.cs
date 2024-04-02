@@ -1,7 +1,6 @@
 ﻿using Blish_HUD.DebugHelper.Services;
 using EntryPoint;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -20,12 +19,15 @@ namespace Blish_HUD {
 
         public static SemVer.Version OverlayVersion { get; } = new SemVer.Version(typeof(BlishHud).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion, true);
 
-        private static string[] StartupArgs;
+        internal static bool RestartOnExit { get; set; } = false;
 
-        public static bool RestartOnExit {
-            get;
-            set;
-        } = false;
+        [ThreadStatic]
+        private static readonly bool _isMainThread = true;
+
+        /// <summary>
+        /// Indicates if the current thread is the main thread.
+        /// </summary>
+        public static bool IsMainThread => _isMainThread;
 
         private static void EnableLogging() {
             // Make sure logging and logging services are available as soon as possible
@@ -45,7 +47,8 @@ namespace Blish_HUD {
         /// </summary>
         [STAThread]
         private static void Main(string[] args) {
-            StartupArgs = args;
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(Application.ExecutablePath));
+
             var settings = Cli.Parse<ApplicationSettings>(args);
 
             if (settings.MainProcessId.HasValue) {
@@ -54,14 +57,21 @@ namespace Blish_HUD {
                 return;
             }
 
-            if (settings.CliExitEarly) return;
+            Debug.ContingencyChecks.RunAll();
 
-            Directory.SetCurrentDirectory(Path.GetDirectoryName(Application.ExecutablePath));
+            // Check to see if we're currently mid-upgrade
+            var attemptUpdate = Overlay.SelfUpdater.SelfUpdateUtil.TryHandleUpdate();
+            if (attemptUpdate.UpdateRelevant && !attemptUpdate.Succeeded) {
+                // Update was detected, but was not successful.  We exit out now.
+                return;
+            }
+
+            if (settings.CliExitEarly) return;
 
             EnableLogging();
 
-            Logger.Debug("Launched from {launchDirectory} with args {launchOptions}.", Directory.GetCurrentDirectory(), string.Join(" ", args));
-
+            Logger.Info("Launched from {launchDirectory} with args {launchOptions}.", Directory.GetCurrentDirectory(), string.Join(" ", args));
+            
             string mutexName = string.IsNullOrEmpty(ApplicationSettings.Instance.MumbleMapName) ? $"{APP_GUID}" : $"{APP_GUID}:{ApplicationSettings.Instance.MumbleMapName}";
             using (Mutex singleInstanceMutex = new Mutex(true, mutexName, out bool ownsMutex)) {
                 try {
@@ -81,7 +91,6 @@ namespace Blish_HUD {
                     using (var game = new BlishHud()) {
                         game.Run();
                     }
-
                 } finally {
                     if (ownsMutex) {
                         // only release if we acquired ownership
@@ -91,12 +100,10 @@ namespace Blish_HUD {
                         singleInstanceMutex.ReleaseMutex();
                     }
 
-                    if (RestartOnExit) {
-                        var currentStartInfo = Process.GetCurrentProcess().StartInfo;
-                        currentStartInfo.FileName = Application.ExecutablePath;
-                        currentStartInfo.Arguments = string.Join(" ", StartupArgs);
-
-                        Process.Start(currentStartInfo);
+                    if (RestartOnExit 
+                     && !(ApplicationSettings.Instance.StartGw2 > 0 
+                      || ApplicationSettings.Instance.ProcessId > 0)) {
+                        Application.Restart();
                     }
                 }
             }

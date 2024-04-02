@@ -1,13 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Blish_HUD.Controls;
 using Microsoft.Xna.Framework.Input;
 
 namespace Blish_HUD.Input {
 
     public class KeyboardHandler : IInputHandler {
+
+        private static readonly Logger Logger = Logger.GetLogger<KeyboardHandler>();
 
         #region Event Handling
 
@@ -51,6 +54,17 @@ namespace Blish_HUD.Input {
         /// </summary>
         public ModifierKeys ActiveModifiers { get; private set; }
 
+        public Control FocusedControl {
+            get => _focusedControl;
+            set {
+                _focusedControl = value;
+
+                Control.FocusedControl = value;
+            }
+        }
+
+        private Control _focusedControl;
+
         private readonly ConcurrentQueue<KeyboardEventArgs> _inputBuffer = new ConcurrentQueue<KeyboardEventArgs>();
 
         private readonly List<Keys> _keysDown = new List<Keys>();
@@ -78,17 +92,38 @@ namespace Blish_HUD.Input {
         
         private Action<string> _textInputDelegate;
 
+        private readonly ReaderWriterLockSlim _stagedKeyBindingLock = new ReaderWriterLockSlim();
+        private readonly HashSet<KeyBinding>  _stagedKeyBindings    = new HashSet<KeyBinding>();
+
         internal KeyboardHandler() { }
 
         public void Update() {
+            if (GameService.Input.Mouse.ActiveControl != null) {
+                foreach (var ancestor in GameService.Input.Mouse.ActiveControl.GetAncestors()) {
+                    if (ancestor.Visible == false) {
+                        GameService.Input.Mouse.ActiveControl.UnsetFocus();
+                        GameService.Input.Mouse.UnsetActiveControl();
+                    }
+                }
+            }
+
+            if (FocusedControl != null) {
+                foreach (var ancestor in FocusedControl.GetAncestors()) {
+                    if (ancestor.Visible == false) {
+                        FocusedControl.UnsetFocus();
+                    }
+                }
+            }
+
             while (_inputBuffer.TryDequeue(out KeyboardEventArgs keyboardEvent)) {
                 if (keyboardEvent.EventType == KeyboardEventType.KeyDown) {
                     // Avoid firing on held keys
                     if (_keysDown.Contains(keyboardEvent.Key)) continue;
 
                     _keysDown.Add(keyboardEvent.Key);
-                } else
+                } else {
                     _keysDown.Remove(keyboardEvent.Key);
+                }
 
                 UpdateStates();
 
@@ -112,6 +147,14 @@ namespace Blish_HUD.Input {
             foreach (Keys key in passingKeys) OnKeyStateChanged(new KeyboardEventArgs(KeyboardEventType.KeyUp, key));
         }
 
+        /// <summary>
+        /// Returns <c>true</c> if either an in-game Textbox or Blish HUD text field is active.
+        /// </summary>
+        public bool TextFieldIsActive() {
+            return (GameService.Gw2Mumble.IsAvailable && GameService.Gw2Mumble.UI.IsTextInputFocused)
+                || _textInputDelegate != null;
+        }
+
         public bool HandleInput(KeyboardEventArgs e) {
             if (_hookGeneralBlock) return true;
 
@@ -131,8 +174,6 @@ namespace Blish_HUD.Input {
             this.ActiveModifiers = KeysUtil.ModifiersFromKeys(downArray);
         }
 
-        private void EndTextInputAsyncInvoke(IAsyncResult asyncResult) { _textInputDelegate?.EndInvoke(asyncResult); }
-
         private bool ShouldBlockKeyEvent(Keys key) {
             // TODO: WIN key combinations should probably completely handled by the OS
 
@@ -142,25 +183,56 @@ namespace Blish_HUD.Input {
             return true;
         }
 
+        internal void StageKeyBinding(KeyBinding keyBinding) {
+            _stagedKeyBindingLock.EnterWriteLock();
+            if (!_stagedKeyBindings.Contains(keyBinding)) {
+                Logger.Debug("Staging keybind {keybind}.", keyBinding.GetBindingDisplayText());
+                _stagedKeyBindings.Add(keyBinding);
+            }
+            _stagedKeyBindingLock.ExitWriteLock();
+        }
+
+        internal void UnstageKeyBinding(KeyBinding keyBinding) {
+            _stagedKeyBindingLock.EnterWriteLock();
+            if (_stagedKeyBindings.Contains(keyBinding)) {
+                Logger.Debug("Unstaging keybind {keybind}.", keyBinding.GetBindingDisplayText());
+                _stagedKeyBindings.Remove(keyBinding);
+            }
+            _stagedKeyBindingLock.ExitWriteLock();
+        }
+
         private bool ProcessInput(KeyboardEventType eventType, Keys key) {
             _inputBuffer.Enqueue(new KeyboardEventArgs(eventType, key));
 
-            // Handle the escape key, which should close the active window or top level context menu (if any)
-            if (key == Keys.Escape) {
-                var activeContextMenu = GameService.Graphics.SpriteScreen.Children
-                   .OfType<ContextMenuStrip>().FirstOrDefault(c => c.Visible);
+            if (GameService.Overlay.InterfaceHidden) return false;
 
-                if (activeContextMenu != null) { 
-                    // If we found an active context menu item, close it
-                    activeContextMenu.Hide();
+            if (GameService.Gw2Mumble.IsAvailable && GameService.Gw2Mumble.UI.IsTextInputFocused) return false;
+
+            // Handle the escape key
+            if (key == Keys.Escape && eventType == KeyboardEventType.KeyDown) {
+                // Loose focus on input fields
+                if (FocusedControl != null) {
+                    FocusedControl.UnsetFocus();
                     return true;
-                } else {
-                    // If we found an active window, close it
-                    var activeWindow = WindowBase2.ActiveWindow;
+                }
 
-                    if (activeWindow != null && activeWindow.CanClose) {
-                        activeWindow.Hide();
+                // Close the active window or top level context menu (if any) if enabled in settings
+                if (GameService.Overlay.CloseWindowOnEscape.Value) {
+                    var activeContextMenu = GameService.Graphics.SpriteScreen.Children
+                       .OfType<ContextMenuStrip>().FirstOrDefault(c => c.Visible);
+
+                    if (activeContextMenu != null) {
+                        // If we found an active context menu item, close it
+                        activeContextMenu.Hide();
                         return true;
+                    } else {
+                        // If we found an active window, close it
+                        var activeWindow = WindowBase2.ActiveWindow;
+
+                        if (activeWindow != null && activeWindow.CanClose && activeWindow.CanCloseWithEscape) {
+                            activeWindow.Hide();
+                            return true;
+                        }
                     }
                 }
             }
@@ -168,11 +240,22 @@ namespace Blish_HUD.Input {
             // Handle text input
             if (_textInputDelegate != null) {
                 string chars = TypedInputUtil.VkCodeToString((uint)key, eventType == KeyboardEventType.KeyDown);
-                _textInputDelegate?.BeginInvoke(chars, EndTextInputAsyncInvoke, null);
+                _textInputDelegate?.Invoke(chars);
                 return ShouldBlockKeyEvent(key);
             }
 
-            // TODO: Implement blocking based on the key that is pressed (for example: Key binding blocking the last pressed key)
+            // We don't want to risk holding up the api response.  Better to
+            // accidentally send a key to the game than to lag the users input.
+            if (_stagedKeyBindingLock.TryEnterReadLock(0)) {
+                foreach (var keyBinding in _stagedKeyBindings) {
+                    if (keyBinding.PrimaryKey == key) {
+                        _stagedKeyBindingLock.ExitReadLock();
+                        return true;
+                    }
+                }
+
+                _stagedKeyBindingLock.ExitReadLock();
+            }
 
             return false;
         }

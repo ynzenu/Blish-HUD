@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Gw2Sharp.WebApi.Caching;
 using Gw2Sharp.WebApi.V2.Models;
 using System.Threading.Tasks;
+using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Blish_HUD.Gw2WebApi;
 using Blish_HUD.Gw2WebApi.UI.Views;
@@ -82,7 +83,7 @@ namespace Blish_HUD {
 
         private void RegisterApiInSettings() {
             // Manage API Keys
-            GameService.Overlay.SettingsTab.RegisterSettingMenu(new MenuItem(Strings.GameServices.Gw2ApiService.ManageApiKeysSection, GameService.Content.GetTexture("155048")),
+            GameService.Overlay.SettingsTab.RegisterSettingMenu(new MenuItem(Strings.GameServices.Gw2ApiService.ManageApiKeysSection, AsyncTexture2D.FromAssetId(155048)),
                                                                 (m) => new RegisterApiKeyView(),
                                                                 int.MaxValue - 11);
         }
@@ -110,7 +111,7 @@ namespace Blish_HUD {
         private async void PlayerCharacterOnNameChanged(object sender, ValueEventArgs<string> e) {
             if (!_characterRepository.ContainsKey(e.Value)) {
                 // We don't currently have an API key associated to this character so we double-check the characters on each key
-                await RefreshRegisteredKeys ();
+                await RefreshRegisteredKeys();
             } else {
                 await UpdateActiveApiKey();
             }
@@ -202,12 +203,30 @@ namespace Blish_HUD {
         #endregion
 
         public ManagedConnection GetConnection(string accessToken) {
+            // Avoid caching connections without an API key
+            if (string.IsNullOrWhiteSpace(accessToken)) {
+                return new ManagedConnection(string.Empty, _sharedTokenBucketMiddleware, _sharedWebCache, _sharedRenderCache);
+            }
+
             return _cachedConnections.GetOrAdd(accessToken, (token) => new ManagedConnection(token, _sharedTokenBucketMiddleware, _sharedWebCache, _sharedRenderCache));
         }
 
         protected override void Unload() { /* NOOP */ }
 
-        protected override void Update(GameTime gameTime) { /* NOOP */ }
+        private double _checkFrequency = 0;
+
+        protected override void Update(GameTime gameTime) {
+            _checkFrequency += gameTime.ElapsedGameTime.TotalMilliseconds;
+
+            if (_checkFrequency > 180000) {
+                _checkFrequency = 0;
+
+                if (string.IsNullOrEmpty(PrivilegedConnection.Connection.AccessToken)) {
+                    RefreshRegisteredKeys();
+                }
+            }
+            
+        }
 
     }
 }

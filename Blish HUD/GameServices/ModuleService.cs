@@ -1,16 +1,20 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Blish_HUD.Modules;
+using Blish_HUD.Modules.UI.Controls;
 using Blish_HUD.Modules.UI.Views;
 using Blish_HUD.Settings;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using Flurl.Http;
 
 namespace Blish_HUD {
 
@@ -28,8 +32,14 @@ namespace Blish_HUD {
         private const string MODULE_EXTENSION    = ".bhm";
         private const string MODULE_MANIFESTNAME = "manifest.json";
 
+        private const string MODULE_COMPATIBILITYLIST = "compatibility.json";
+        private const string MODULE_SPOILEDURI        = "https://pkgs.blishhud.com/spoiled.json";
+
         public event EventHandler<ValueEventArgs<ModuleManager>> ModuleRegistered;
         public event EventHandler<ValueEventArgs<ModuleManager>> ModuleUnregistered;
+
+        private List<ModuleDependency> _incompatibleModules      = new List<ModuleDependency>(0);
+        private HashSet<string>        _spoiledModuleIdentifiers = new HashSet<string>(0);
 
         /// <summary>
         /// Access to repo management and state.
@@ -63,7 +73,18 @@ namespace Blish_HUD {
             _exportedOnVersions = settings.DefineSetting(EXPORTED_VERSION_SETTING,  new List<string>());
         }
 
+        internal bool ModuleIsExplicitlyIncompatible(ModuleManager moduleManager) {
+            return _spoiledModuleIdentifiers.Contains($"{moduleManager.Manifest.Namespace}_{moduleManager.Manifest.Version}")
+                || _incompatibleModules.Any(compatibilityListing => string.Equals(moduleManager.Manifest.Namespace, compatibilityListing.Namespace, StringComparison.OrdinalIgnoreCase)
+                                                                 && compatibilityListing.VersionRange.IsSatisfied(moduleManager.Manifest.Version.BaseVersion()));
+        }
+
         public ModuleManager RegisterModule(IDataReader moduleReader) {
+            if (moduleReader == null) {
+                Logger.Warn("Failed to register a module as its archive could not be loaded.");
+                return null;
+            }
+
             if (!moduleReader.FileExists(MODULE_MANIFESTNAME)) {
                 Logger.Warn("Attempted to load an invalid module {modulePath}: {manifestName} is missing.", moduleReader.GetPathRepresentation(), MODULE_MANIFESTNAME);
                 return null;
@@ -73,24 +94,51 @@ namespace Blish_HUD {
             using (var manifestReader = new StreamReader(moduleReader.GetFileStream(MODULE_MANIFESTNAME))) {
                 manifestContents = manifestReader.ReadToEnd();
             }
-            var moduleManifest = JsonConvert.DeserializeObject<Manifest>(manifestContents);
-            bool enableModule = false;
 
-            if (_moduleStates.Value.ContainsKey(moduleManifest.Namespace)) {
-                enableModule = _moduleStates.Value[moduleManifest.Namespace].Enabled;
-            } else {
+            Manifest moduleManifest = null;
+
+            try {
+                moduleManifest = JsonConvert.DeserializeObject<Manifest>(manifestContents);
+            } catch (Exception ex) {
+                Logger.Warn(ex, "Failed to read module manifest.  It appears to be malformed.  The module at path {modulePath} will not be loaded.", moduleReader.GetPathRepresentation());
+                return null;
+            }
+
+            // Avoid loading the same module multiple times (ensure we load the highest version).
+            var existingModule = _modules.FirstOrDefault(module => string.Equals(moduleManifest.Namespace, module.Manifest.Namespace, StringComparison.OrdinalIgnoreCase));
+            if (existingModule != null) {
+                Logger.Warn("A module with the namespace {moduleNamespace} has has already been loaded.  The module at path {modulePath} is a duplicate of this module.  Please remove any duplicate module(s).",
+                            moduleManifest.Namespace,
+                            moduleReader.GetPathRepresentation());
+
+                if (existingModule.Manifest.Version > moduleManifest.Version) {
+                    // We're loading a duplicate - exit early
+                    return null;
+                } else {
+                    // This version is newer than the existing one, so replace it
+                    UnregisterModule(existingModule);
+                }
+            }
+
+            if (!_moduleStates.Value.ContainsKey(moduleManifest.Namespace)) {
                 _moduleStates.Value.Add(moduleManifest.Namespace, new ModuleState());
             }
 
-            var moduleManager  = new ModuleManager(moduleManifest,
-                                                   _moduleStates.Value[moduleManifest.Namespace],
-                                                   moduleReader);
+            var moduleManager = new ModuleManager(moduleManifest,
+                                                  _moduleStates.Value[moduleManifest.Namespace],
+                                                  moduleReader);
+
+            if (ModuleIsExplicitlyIncompatible(moduleManager)) {
+                Logger.Warn("The module {module} is not compatible with this version of Blish HUD so it will not allow you to enable it.  Please remove the module or update to a compatible version if one is available.",
+                            moduleManifest.GetDetailedName(),
+                            moduleReader.GetPathRepresentation());
+            }
 
             _modules.Add(moduleManager);
 
             this.ModuleRegistered?.Invoke(this, new ValueEventArgs<ModuleManager>(moduleManager));
 
-            if (enableModule) {
+            if (moduleManifest.EnabledWithoutGW2 && _moduleStates.Value[moduleManifest.Namespace].Enabled) {
                 moduleManager.TryEnable();
             }
 
@@ -124,10 +172,44 @@ namespace Blish_HUD {
             }
         }
 
-        private void UnpackInternalModules() {
-            var internalModulesReader = new ZipArchiveReader("ref.dat");
+        private void LoadSpoiledList() {
+            try {
+                // We block for this on purpose
+                _spoiledModuleIdentifiers = MODULE_SPOILEDURI.GetJsonAsync<string[]>().GetAwaiter().GetResult().ToHashSet();
+            } catch (Exception ex) {
+                Logger.Warn(ex, "Failed to load the spoiled modules list!");
+            }
+        }
 
-            internalModulesReader.LoadOnFileType(ExtractPackagedModule, MODULE_EXTENSION);
+        private void LoadCompatibility(IDataReader datReader) {
+            if (datReader.FileExists(MODULE_COMPATIBILITYLIST)) {
+                try {
+                    var    compatibilityStream = datReader.GetFileStream(MODULE_COMPATIBILITYLIST).ReplaceWithMemoryStream();
+                    string compatibilityRaw    = Encoding.UTF8.GetString(compatibilityStream.GetBuffer(), 0, (int)compatibilityStream.Length);
+                    _incompatibleModules = JsonConvert.DeserializeObject<List<ModuleDependency>>(compatibilityRaw, new ModuleDependency.VersionDependenciesConverter());
+                } catch (Exception ex) {
+                    Logger.Warn(ex, "Failed to load {compatibilityFile} from the ref.dat.", MODULE_COMPATIBILITYLIST);
+                }
+            }
+        }
+
+        private void HandleFirstVersionLaunch(IDataReader datReader) {
+            string baseVersionString = Program.OverlayVersion.BaseVersion().ToString();
+            if (!_exportedOnVersions.Value.Contains(baseVersionString) || ApplicationSettings.Instance.DebugEnabled) {
+                datReader.LoadOnFileType(ExtractPackagedModule, MODULE_EXTENSION);
+
+                if (!_exportedOnVersions.Value.Contains(baseVersionString)) {
+                    _exportedOnVersions.Value.Add(baseVersionString);
+                }
+            }
+        }
+
+        private void HandleRefLoading() {
+            var datReader = new ZipArchiveReader(ApplicationSettings.Instance.RefPath);
+
+            HandleFirstVersionLaunch(datReader);
+            LoadCompatibility(datReader);
+            LoadSpoiledList();
         }
         
         /// <summary>
@@ -142,7 +224,25 @@ namespace Blish_HUD {
                 return null;
             }
 
-            return RegisterModule(new ZipArchiveReader(modulePath));
+            ZipArchiveReader moduleArchive = null;
+
+            try {
+                moduleArchive = new ZipArchiveReader(modulePath);
+            } catch (InvalidDataException e) {
+                Logger.Warn(e, "Attempted to load a module {modulePath} which appears to be corrupt.  Deleting it so that it can be redownloaded.", modulePath);
+
+                try {
+                    File.Delete(modulePath); // Delete it to avoid problems and help ensure the user downloads a new copy.
+                } catch (Exception ex) {
+                    Logger.Warn(ex, "Failed to delete module {modulePath}.", modulePath);
+                }
+
+                return null;
+            } catch (Exception e) {
+                Logger.Error(e, "Attempted to load a module {modulePath} but the archive could not be read.", modulePath);
+            }
+
+            return RegisterModule(moduleArchive);
         }
 
         /// <summary>
@@ -203,23 +303,32 @@ namespace Blish_HUD {
                 debugModule?.TryEnable();
             }
 
-            // Get the base version string and see if we've exported the modules for this version yet
-            string baseVersionString = Program.OverlayVersion.BaseVersion().ToString();
-            if (!_exportedOnVersions.Value.Contains(baseVersionString)) {
-                UnpackInternalModules();
-                _exportedOnVersions.Value.Add(baseVersionString);
-            }
+            HandleRefLoading();
 
             foreach (string moduleArchivePath in Directory.GetFiles(this.ModulesDirectory, $"*{MODULE_EXTENSION}", SearchOption.AllDirectories)) {
                 RegisterPackedModule(moduleArchivePath);
+            }
+
+            if (GameService.GameIntegration.Gw2Instance.Gw2IsRunning) {
+                Gw2Instance_Gw2Started(null, null);
+            } else {
+                GameService.GameIntegration.Gw2Instance.Gw2Started += Gw2Instance_Gw2Started;
+            }
+        }
+
+        private void Gw2Instance_Gw2Started(object sender, EventArgs e) {
+            foreach (var module in _modules) {
+                if (module.State.Enabled) {
+                    module.TryEnable();
+                }
             }
         }
 
         private          MenuItem                            _rootModuleSettingsMenuItem;
         private readonly Dictionary<MenuItem, ModuleManager> _moduleMenus = new Dictionary<MenuItem, ModuleManager>();
-
+        
         private void RegisterModuleMenuInSettings(ModuleManager moduleManager) {
-            var moduleMi = new MenuItem(moduleManager.Manifest.Name) {
+            var moduleMi = new ModuleMenuItem(moduleManager) {
                 BasicTooltipText = moduleManager.Manifest.Description,
                 Parent           = _rootModuleSettingsMenuItem
             };
@@ -263,12 +372,13 @@ namespace Blish_HUD {
 
         protected override void Update(GameTime gameTime) {
             foreach (var module in _modules) {
-                if (module.Enabled) {
+                // Only update enabled modules if we are in game or if the module specifies it can run without Guild Wars 2
+                if (module.Enabled && (GameIntegration.Gw2Instance.Gw2IsRunning || module.Manifest.EnabledWithoutGW2)) {
                     GameService.Debug.StartTimeFunc(module.Manifest.Name);
                     try {
                         module.ModuleInstance.DoUpdate(gameTime);
                     } catch (Exception ex) {
-                        Logger.Error(ex, "Module {module} threw an exception while updating.", module.Manifest.GetDetailedName());
+                        Logger.GetLogger(module.GetType()).Error(ex, "Module {module} threw an exception while updating.", module.Manifest.GetDetailedName());
 
                         if (ApplicationSettings.Instance.DebugEnabled) {
                             // To assist in debugging modules
@@ -281,13 +391,15 @@ namespace Blish_HUD {
         }
 
         protected override void Unload() {
+            GameService.GameIntegration.Gw2Instance.Gw2Started -= Gw2Instance_Gw2Started;
+
             foreach (var module in _modules) {
                 if (module.Enabled) {
                     try {
                         Logger.Info("Unloading module {module}.", module.Manifest.GetDetailedName());
                         module.ModuleInstance.Dispose();
                     } catch (Exception ex) {
-                        Logger.Error(ex, "Module '{module} threw an exception while unloading.", module.Manifest.GetDetailedName());
+                        Logger.GetLogger(module.GetType()).Error(ex, "Module '{module} threw an exception while unloading.", module.Manifest.GetDetailedName());
 
                         if (ApplicationSettings.Instance.DebugEnabled) {
                             // To assist in debugging modules

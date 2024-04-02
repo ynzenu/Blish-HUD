@@ -144,6 +144,7 @@ namespace Blish_HUD.Controls {
             set {
                 if (SetProperty(ref _focused, value)) {
                     OnInputFocusChanged(new ValueEventArgs<bool>(value));
+                    GameService.Input.Keyboard.FocusedControl = this;
                 }
             }
         }
@@ -169,6 +170,7 @@ namespace Blish_HUD.Controls {
         }
 
         protected int _cursorIndex;
+        protected int _prevCursorIndex;
 
         /// <summary>
         /// Gets or sets the current index of the cursor within the text.
@@ -176,6 +178,7 @@ namespace Blish_HUD.Controls {
         public int CursorIndex {
             get => _cursorIndex;
             set {
+                _prevCursorIndex = _cursorIndex;
                 if (SetProperty(ref _cursorIndex, value, true)) {
                     OnCursorIndexChanged(new ValueEventArgs<int>(value));
                 }
@@ -195,6 +198,7 @@ namespace Blish_HUD.Controls {
         protected bool _multiline;
         protected bool _caretVisible;
         protected bool _cursorMoved;
+        protected bool _cursorDragging;
 
         private TimeSpan _lastInvalidate;
         private bool     _insertMode;
@@ -310,15 +314,13 @@ namespace Blish_HUD.Controls {
         private void DeleteSelection() {
             if (_selectionStart == _selectionEnd) return;
 
-            if (_selectionStart < _selectionEnd) {
-                Delete(_selectionStart, _selectionEnd - _selectionStart);
-                _selectionEnd = _selectionStart;
-            } else {
-                Delete(_selectionEnd, _selectionStart - _selectionEnd);
-                _selectionStart = _selectionEnd;
-            }
+            int deleteStart = Math.Min(_selectionStart, _selectionEnd);
+            int deleteLength = Math.Max(_selectionStart, _selectionEnd) - deleteStart;
 
-            UserSetCursorIndex(_selectionStart);
+            Delete(deleteStart, deleteLength);
+
+            UserSetCursorIndex(deleteStart);
+            ResetSelection();
         }
 
         private bool Paste(string value) {
@@ -471,7 +473,7 @@ namespace Blish_HUD.Controls {
 
             value = ProcessText(value);
 
-            if (!SetProperty(ref _text, value)) return false;
+            if (!SetProperty(ref _text, value, false, nameof(Text))) return false;
 
             // TODO: Update formatted text?
 
@@ -488,7 +490,28 @@ namespace Blish_HUD.Controls {
             return true;
         }
 
+        public override void UnsetFocus() {
+            this.Focused = false;
+            GameService.Input.Keyboard.FocusedControl = null;
+        }
+
+        public override bool GetFocusState() {
+            return Focused;
+        }
+
         private void OnGlobalKeyboardKeyStateChanged(object sender, KeyboardEventArgs e) {
+            // TODO: move this to KeyboardHandler or similar
+            if (GameService.Overlay.InterfaceHidden) return;
+
+            // Loose focus as soon as an acestor is hidden
+            // TODO: this is still a keypress too late
+            foreach (var ancestor in GetAncestors()) {
+                if (ancestor.Visible == false) {
+                    UnsetFocus();
+                    return;
+                }
+            }
+
             // Remove keyup event early to prevent executing special actions twice
             if (e.EventType == KeyboardEventType.KeyUp) {
                 _keyRepeatStates.Remove(e.Key);
@@ -497,6 +520,9 @@ namespace Blish_HUD.Controls {
 
             // Skip key repeated execution for these
             switch (e.Key) {
+                case Keys.Escape:
+                    UnsetFocus();
+                    return;
                 case Keys.Insert:
                     _insertMode = !_insertMode;
                     return;
@@ -681,11 +707,13 @@ namespace Blish_HUD.Controls {
 
         private void UpdateFocusState(bool focused) {
             if (focused) {
+                Input.Mouse.LeftMouseButtonPressed  += OnGlobalMouseLeftMouseButtonPressed;
                 Input.Mouse.LeftMouseButtonReleased += OnGlobalMouseLeftMouseButtonReleased;
                 Input.Keyboard.KeyStateChanged      += OnGlobalKeyboardKeyStateChanged;
 
                 GameService.Input.Keyboard.SetTextInputListner(OnTextInput);
             } else {
+                Input.Mouse.LeftMouseButtonPressed  -= OnGlobalMouseLeftMouseButtonPressed;
                 Input.Mouse.LeftMouseButtonReleased -= OnGlobalMouseLeftMouseButtonReleased;
                 Input.Keyboard.KeyStateChanged      -= OnGlobalKeyboardKeyStateChanged;
 
@@ -697,40 +725,67 @@ namespace Blish_HUD.Controls {
             }
         }
 
-        private void OnGlobalMouseLeftMouseButtonReleased(object sender, MouseEventArgs e) {
+        private void OnGlobalMouseLeftMouseButtonPressed(object sender, MouseEventArgs e) {
             this.Focused = _mouseOver && _enabled;
+        }
+
+        private void OnGlobalMouseLeftMouseButtonReleased(object sender, MouseEventArgs e) {
+            _cursorDragging = false;
         }
 
         public abstract int GetCursorIndexFromPosition(int x, int y);
 
         public int GetCursorIndexFromPosition(Point position) => GetCursorIndexFromPosition(position.X, position.Y);
 
-        protected void HandleMouseUpdatedCursorIndex(int newIndex, bool isDoubleClick) {
-            if (_cursorIndex == newIndex && isDoubleClick) {
-                this.SelectionStart = GetClosestLeftWordBoundary(newIndex);
-                this.SelectionEnd   = GetClosestRightWordBoundary(newIndex);
-            } else {
-                UserSetCursorIndex(newIndex);
-                UpdateSelectionIfShiftDown();
+        protected void HandleMouseUpdatedCursorIndex(int newIndex) {
+            UserSetCursorIndex(newIndex);
+            UpdateSelectionIfShiftDown();
+        }
+
+        protected void HandleMouseDoubleClick() {
+            if (_cursorIndex == _prevCursorIndex) {
+                this.SelectionStart = GetClosestLeftWordBoundary(_cursorIndex);
+                this.SelectionEnd = GetClosestRightWordBoundary(_cursorIndex);
             }
+        }
+
+        protected void HandleMouseSelectionDrag(int newIndex) {
+            UserSetCursorIndex(newIndex);
+            this.SelectionEnd = newIndex;
+        }
+
+        protected override void OnLeftMouseButtonPressed(MouseEventArgs e) {
+            base.OnLeftMouseButtonPressed(e);
+
+            _cursorDragging = true;
+
+            HandleMouseUpdatedCursorIndex(GetCursorIndexFromPosition(this.RelativeMousePosition));
+
+            this.Focused = true;
+        }
+
+        protected override void OnMouseMoved(MouseEventArgs e) {
+            base.OnMouseMoved(e);
+
+            if (_cursorDragging) HandleMouseSelectionDrag(GetCursorIndexFromPosition(this.RelativeMousePosition));
         }
 
         protected override void OnClick(MouseEventArgs e) {
             base.OnClick(e);
 
-            this.Focused = true;
+            if (e.IsDoubleClick) HandleMouseDoubleClick();
 
-            HandleMouseUpdatedCursorIndex(GetCursorIndexFromPosition(this.RelativeMousePosition), e.IsDoubleClick);
+            this.Focused = true;
         }
 
-        protected void PaintText(SpriteBatch spriteBatch, Rectangle textRegion) {
+        protected void PaintText(SpriteBatch spriteBatch, Rectangle textRegion, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left) {
             // Draw the placeholder text
             if (!_focused && _text.Length == 0) {
-                spriteBatch.DrawStringOnCtrl(this, _placeholderText, _font, textRegion, Color.LightGray, false, false, 0, HorizontalAlignment.Left, VerticalAlignment.Top);
+                spriteBatch.DrawStringOnCtrl(this, _placeholderText, _font, textRegion, Color.LightGray, false, false, 0, horizontalAlignment, VerticalAlignment.Top);
             }
 
             // Draw the text
-            spriteBatch.DrawStringOnCtrl(this, _text, _font, textRegion, _foreColor, false, false, 0, HorizontalAlignment.Left, VerticalAlignment.Top);
+            spriteBatch.DrawStringOnCtrl(this, _text, _font, textRegion, _foreColor, false, false, 0, horizontalAlignment, VerticalAlignment.Top);
         }
 
         protected void PaintHighlight(SpriteBatch spriteBatch, Rectangle highlightRegion) {

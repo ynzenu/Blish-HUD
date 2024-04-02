@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Security.AccessControl;
 using System.Windows.Forms;
+using Blish_HUD.GameIntegration.Gw2Instance;
 using Blish_HUD.GameServices;
 using Blish_HUD.Settings;
 using Gapotchenko.FX.Diagnostics;
@@ -12,7 +12,8 @@ using Microsoft.Win32;
 using Microsoft.Xna.Framework;
 
 namespace Blish_HUD.GameIntegration {
-    public class Gw2InstanceIntegration : ServiceModule<GameIntegrationService> {
+
+    public sealed class Gw2InstanceIntegration : ServiceModule<GameIntegrationService> {
 
         private static readonly Logger Logger = Logger.GetLogger<Gw2InstanceIntegration>();
 
@@ -20,6 +21,8 @@ namespace Blish_HUD.GameIntegration {
         private const string GW2_REGISTRY_PATH_SV = "Path";
 
         private const string GW2_PATCHWINDOW_CLASS = "ArenaNet";
+        private const string GW2_DX9WINDOW_CLASS   = "ArenaNet_Dx_Window_Class";
+        private const string GW2_DX11WINDOW_CLASS  = "ArenaNet_Gr_Window_Class";
 
         private const string APPDATA_ENVKEY = "appdata";
 
@@ -42,11 +45,17 @@ namespace Blish_HUD.GameIntegration {
         #endregion
 
         private Process _gw2Process;
-        public  Process Gw2Process {
+        public Process Gw2Process {
             get => _gw2Process;
-            set {
+            private set {
                 if (PropertyUtil.SetProperty(ref _gw2Process, value)) {
-                    HandleProcessUpdate(value);
+                    try {
+                        HandleProcessUpdate(value);
+                    } catch (Win32Exception) {
+                        Debug.Contingency.NotifyWin32AccessDenied();
+                        _gw2Process = null;
+                        _gw2IsRunning = false;
+                    }
                 }
             }
         }
@@ -57,7 +66,7 @@ namespace Blish_HUD.GameIntegration {
         /// </summary>
         public bool Gw2IsRunning {
             get => _gw2IsRunning;
-            set {
+            private set {
                 if (PropertyUtil.SetProperty(ref _gw2IsRunning, value)) {
                     if (value) {
                         OnGw2Started();
@@ -109,6 +118,11 @@ namespace Blish_HUD.GameIntegration {
             }
         }
 
+        /// <summary>
+        /// Indicates if the Guild Wars 2 instance is likely a Steam copy of the game.
+        /// </summary>
+        public bool IsSteamVersion => _gw2ExecutablePath.Value.Contains("steamapps\\common");
+
         private string _appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         /// <summary>
         /// Indicates the associated AppData path used by the active Guild Wars 2 instance.
@@ -127,6 +141,11 @@ namespace Blish_HUD.GameIntegration {
             get => _commandLine;
             private set => PropertyUtil.SetProperty(ref _commandLine, value);
         }
+
+        /// <summary>
+        /// Indicates what graphics API Guild Wars 2 is actively using.
+        /// </summary>
+        public Gw2GraphicsApi GraphicsApi { get; private set; } = Gw2GraphicsApi.Unknown;
 
         // Settings
         private SettingEntry<string> _gw2ExecutablePath;
@@ -167,19 +186,40 @@ namespace Blish_HUD.GameIntegration {
             }
         }
 
+        private void UpdateDetectedGraphicsApi(string windowClassName) {
+            var lastDetectedGraphicsApi = this.GraphicsApi;
+
+            // We can detect DX9 vs. DX11 via the window class name
+            this.GraphicsApi = windowClassName switch {
+                GW2_DX9WINDOW_CLASS  => Gw2GraphicsApi.DX9,
+                GW2_DX11WINDOW_CLASS => Gw2GraphicsApi.DX11,
+                _                    => Gw2GraphicsApi.Unknown
+            };
+
+            if (this.GraphicsApi != Gw2GraphicsApi.Unknown && lastDetectedGraphicsApi != this.GraphicsApi) {
+                Logger.Info("Guild Wars 2 is running in {graphicsApi}.", this.GraphicsApi);
+            }
+        }
+
         private void HandleProcessUpdate(Process newProcess) {
+            string windowClass = null;
+
             if (newProcess == null || _gw2Process.HasExited || _gw2Process.MainWindowHandle == IntPtr.Zero) {
                 BlishHud.Instance.Form.Invoke((MethodInvoker)(() => { BlishHud.Instance.Form.Visible = false; }));
 
                 _gw2Process = null;
                 this.Gw2IsRunning = false;
+
+                if (GameService.Overlay.ShowInTaskbar.Value) {
+                    WindowUtil.SetShowInTaskbar(BlishHud.Instance.FormHandle, false);
+                }
             } else {
                 if (_gw2Process.MainModule != null) {
                     _gw2ExecutablePath.Value = _gw2Process.MainModule.FileName;
                 }
 
                 try {
-                    this.CommandLine = newProcess.GetCommandLine();
+                    this.CommandLine = newProcess.ReadArguments();
                 } catch (Win32Exception e) {
                     this.CommandLine = string.Empty;
                     Logger.Warn(e, "A Win32Exception was encountered while trying to retrieve the process command line.");
@@ -196,15 +236,23 @@ namespace Blish_HUD.GameIntegration {
                     Logger.Warn("Failed to auto-detect Guild Wars 2 environment variables.  Restart Guild Wars 2 to try again.");
                 } catch (NullReferenceException e) {
                     Logger.Warn(e, "Failed to grab Guild Wars 2 env variable.  It is likely exiting.");
+                } catch (ArgumentException e) {
+                    Logger.Warn(e, "Failed to parse the Guild Wars 2 env variables.");
                 }
 
                 // GW2 is running if the "_gw2Process" isn't null and the class name of process' 
                 // window is the game window name (so we know we are passed the login screen)
-                string windowClass = WindowUtil.GetClassNameOfWindow(_gw2Process.MainWindowHandle);
+                windowClass = WindowUtil.GetClassNameOfWindow(_gw2Process.MainWindowHandle);
 
                 this.Gw2IsRunning = windowClass == ApplicationSettings.Instance.WindowName
                                  || windowClass != GW2_PATCHWINDOW_CLASS;
+
+                if (GameService.Overlay.ShowInTaskbar.Value) {
+                    WindowUtil.SetShowInTaskbar(BlishHud.Instance.FormHandle, true);
+                }
             }
+
+            UpdateDetectedGraphicsApi(windowClass);
         }
 
         private void OnGameFocusChanged(object sender, ValueEventArgs<bool> e) {
@@ -231,6 +279,8 @@ namespace Blish_HUD.GameIntegration {
                 try {
                     this.Gw2Process.EnableRaisingEvents =  true;
                     this.Gw2Process.Exited              += OnGw2Exit;
+
+                    BlishHud.Instance.Form.Invoke((MethodInvoker)(() => { BlishHud.Instance.Form.Visible = true; }));
                 } catch (Win32Exception ex) /* [BLISHHUD-W] */ {
                     // Observed as "Access is denied"
                     Logger.Warn(ex, "A Win32Exception was encountered while trying to monitor the Gw2 process. It might be running with different permissions.");
@@ -238,12 +288,12 @@ namespace Blish_HUD.GameIntegration {
                     // Can get thrown if the game is closed just as we launched it
                     OnGw2Exit(null, EventArgs.Empty);
                 }
-
-                BlishHud.Instance.Form.Invoke((MethodInvoker)(() => { BlishHud.Instance.Form.Visible = true; }));
             }
         }
 
         private Process GetGw2ProcessByPID(int pid, string src) {
+            if (pid == 0) return null; // Fix reading empty process. Caused by MumbleLink mock tools.
+
             try {
                 return Process.GetProcessById(pid);
             } catch (ArgumentException) {
@@ -256,6 +306,8 @@ namespace Blish_HUD.GameIntegration {
         }
 
         private Process GetMumbleSpecifiedGw2Process() {
+            GameService.Gw2Mumble.RefreshClient();
+
             if (GameService.Gw2Mumble.IsAvailable) {
                 return GetGw2ProcessByPID((int)GameService.Gw2Mumble.Info.ProcessId, "Mumble reported PID");
             }
@@ -323,9 +375,9 @@ namespace Blish_HUD.GameIntegration {
                     case WindowUtil.OverlayUpdateResponse.Errored:
                         switch (updateResult.ErrorCode) {
                             case 1400:
-                                this.Gw2Process.Refresh();
-
-                                if (this.Gw2Process.MainWindowHandle == IntPtr.Zero) {
+                                this.Gw2Process?.Refresh();
+                                
+                                if (this.Gw2Process == null || this.Gw2Process.MainWindowHandle == IntPtr.Zero) {
                                     // Guild Wars 2 most likely closed
                                     goto case -1;
                                 }
@@ -334,6 +386,9 @@ namespace Blish_HUD.GameIntegration {
                             case -1:
                             default:
                                 this.Gw2Process = null;
+                                if (GameService.Overlay.ShowInTaskbar.Value) {
+                                    WindowUtil.SetShowInTaskbar(BlishHud.Instance.FormHandle, false);
+                                }
                                 break;
                         }
                         break;
@@ -358,7 +413,9 @@ namespace Blish_HUD.GameIntegration {
 
             Logger.Info("Guild Wars 2 application has exited!");
 
-            if (!GameService.Overlay.StayInTray.Value) {
+            // We close the game if we are not configured to stay in the tray OR if we launched GW2 with
+            // command line (we don't want to relaunch the game with a restart).  Otherwise, we restart.
+            if (!GameService.Overlay.StayInTray.Value || ApplicationSettings.Instance.StartGw2 > 0) {
                 GameService.Overlay.Exit();
             } else {
                 GameService.Overlay.Restart();

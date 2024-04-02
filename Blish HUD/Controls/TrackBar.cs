@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Blish_HUD.Content;
 using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -11,19 +13,25 @@ namespace Blish_HUD.Controls {
         
         private const int BUMPER_WIDTH = 4;
 
-        #region Load Static
+        private readonly List<float> tenIncrements = new List<float>();
 
-        private static readonly Texture2D       _textureTrack;
-        private static readonly TextureRegion2D _textureNub;
+        #region Textures
 
-        static TrackBar() {
-            _textureTrack = Content.GetTexture("controls/trackbar/154968");
-            _textureNub   = Resources.Control.TextureAtlasControl.GetRegion("trackbar/tb-nub");
-        }
+        private readonly AsyncTexture2D _textureTrack = AsyncTexture2D.FromAssetId(154968);
+
+        private static readonly TextureRegion2D _textureNub   = Resources.Control.TextureAtlasControl.GetRegion("trackbar/tb-nub");
 
         #endregion
 
+        /// <summary>
+        /// Fires when the value of the <see cref="TrackBar"/> is changed.
+        /// </summary>
         public event EventHandler<ValueEventArgs<float>> ValueChanged;
+
+        /// <summary>
+        /// Fires when the <see cref="TrackBar"/> starts or stops being dragged.
+        /// </summary>
+        public event EventHandler<ValueEventArgs<bool>> IsDraggingChanged;
 
         protected float _maxValue = 100f;
 
@@ -36,6 +44,7 @@ namespace Blish_HUD.Controls {
                 if (SetProperty(ref _maxValue, value, true)) {
                     this.Value = _value;
                 }
+                MinMaxChanged();
             }
         }
 
@@ -50,6 +59,7 @@ namespace Blish_HUD.Controls {
                 if (SetProperty(ref _minValue, value, true)) {
                     this.Value = _value;
                 }
+                MinMaxChanged();
             }
         }
 
@@ -66,16 +76,27 @@ namespace Blish_HUD.Controls {
         protected bool _smallStep = false;
 
         /// <summary>
-        /// If <c>true</c>, values can change in increments less than 1.
-        /// If <c>false</c>, values will snap to full integers.
+        /// If <see langword="true"/>, values can change in increments less than 1.
+        /// If <see langword="false"/>, values will snap to full integers.
         /// </summary>
         public bool SmallStep {
             get => _smallStep;
             set => SetProperty(ref _smallStep, value);
         }
 
-        private bool _dragging   = false;
-        private int  _dragOffset = 0;
+        private bool _dragging = false;
+        /// <summary>
+        /// <see langword="True"/> if the <see cref="TrackBar"/> is being dragged; otherwise <see langword="false"/>.
+        /// </summary>
+        public bool Dragging {
+            get => _dragging;
+            private set {
+                if (!SetProperty(ref _dragging, value)) return;
+                this.IsDraggingChanged?.Invoke(this, new ValueEventArgs<bool>(value));
+            }
+        }
+
+        private int   _dragOffset = 0;
 
         public TrackBar() {
             this.Size = new Point(256, 16);
@@ -84,26 +105,31 @@ namespace Blish_HUD.Controls {
         }
 
         private void InputOnLeftMouseButtonReleased(object sender, MouseEventArgs e) {
-            _dragging = false;
+            this.Dragging = false;
         }
 
         protected override void OnLeftMouseButtonPressed(MouseEventArgs e) {
             base.OnLeftMouseButtonPressed(e);
-
-            if (_layoutNubBounds.Contains(this.RelativeMousePosition)) {
-                _dragging   = true;
-                _dragOffset = this.RelativeMousePosition.X - _layoutNubBounds.X + BUMPER_WIDTH;
+            if (_layoutNubBounds.Contains(this.RelativeMousePosition) && !this.Dragging) {
+                _dragOffset     = this.RelativeMousePosition.X - _layoutNubBounds.X - BUMPER_WIDTH / 2;
+                this.Dragging   = true;
             }
         }
 
         public override void DoUpdate(GameTime gameTime) {
-            if (_dragging) {
-                var relMousePos = this.RelativeMousePosition - new Point(_dragOffset, 0);
-                float rawValue = (relMousePos.X / (float)(this.Width - BUMPER_WIDTH * 2 - _textureNub.Width)) * (this.MaxValue - this.MinValue);
+            if (this.Dragging) {
+                float rawValue = (this.RelativeMousePosition.X - BUMPER_WIDTH - _dragOffset) / (float)(this.Width - BUMPER_WIDTH - _textureNub.Width) * (this.MaxValue - this.MinValue) + this.MinValue;
 
-                this.Value = this.SmallStep && GameService.Input.Keyboard.ActiveModifiers != ModifierKeys.Ctrl
-                                 ? rawValue
-                                 : (float) Math.Round(rawValue, 0);
+                this.Value = GameService.Input.Keyboard.ActiveModifiers != ModifierKeys.Ctrl
+                                 ? SmallStep ? rawValue : (float)Math.Round(rawValue, 0)
+                                 : tenIncrements.Aggregate((x, y) => Math.Abs(x - rawValue) < Math.Abs(y - rawValue) ? x : y);
+            }
+        }
+
+        private void MinMaxChanged() {
+            tenIncrements.Clear();
+            for (int i = 0; i < 11; i++) {
+                tenIncrements.Add((this.MaxValue - this.MinValue) * 0.1f * i + this.MinValue);
             }
         }
 
@@ -126,6 +152,12 @@ namespace Blish_HUD.Controls {
             spriteBatch.DrawOnCtrl(this, ContentService.Textures.Pixel, _layoutRightBumper);
 
             spriteBatch.DrawOnCtrl(this, _textureNub, _layoutNubBounds);
+        }
+
+        protected override void DisposeControl() {
+            base.DisposeControl();
+            
+            Input.Mouse.LeftMouseButtonReleased -= InputOnLeftMouseButtonReleased;
         }
 
     }

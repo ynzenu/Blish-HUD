@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Blish_HUD;
 using Glide;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -16,26 +15,15 @@ namespace Blish_HUD.Controls {
 
         #region Load Static
 
-        private static readonly SynchronizedCollection<ScreenNotification> _activeScreenNotifications;
+        private static readonly SynchronizedCollection<ScreenNotification> _activeScreenNotifications = new SynchronizedCollection<ScreenNotification>();
 
-        private static readonly BitmapFont _fontMenomonia36Regular;
+        private static readonly BitmapFont _fontMenomonia36Regular = Content.GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size36, ContentService.FontStyle.Regular);
 
-        private static readonly Texture2D _textureGrayBackground;
-        private static readonly Texture2D _textureBlueBackground;
-        private static readonly Texture2D _textureGreenBackground;
-        private static readonly Texture2D _textureRedBackground;
-
-        static ScreenNotification() {
-            _activeScreenNotifications = new SynchronizedCollection<ScreenNotification>();
-
-            _fontMenomonia36Regular = Content.GetFont(ContentService.FontFace.Menomonia, ContentService.FontSize.Size36, ContentService.FontStyle.Regular);
-
-            _textureGrayBackground  = Content.GetTexture(@"controls/notification/notification-gray");
-            _textureBlueBackground  = Content.GetTexture(@"controls/notification/notification-blue");
-            _textureGreenBackground = Content.GetTexture(@"controls/notification/notification-green");
-            _textureRedBackground   = Content.GetTexture(@"controls/notification/notification-red");
-        }
-
+        private static readonly Texture2D _textureGrayBackground  = Content.GetTexture(@"controls/notification/notification-gray");
+        private static readonly Texture2D _textureBlueBackground  = Content.GetTexture(@"controls/notification/notification-blue");
+        private static readonly Texture2D _textureGreenBackground = Content.GetTexture(@"controls/notification/notification-green");
+        private static readonly Texture2D _textureRedBackground   = Content.GetTexture(@"controls/notification/notification-red");
+        
         #endregion
 
         public enum NotificationType {
@@ -76,6 +64,7 @@ namespace Blish_HUD.Controls {
         
         private Glide.Tween _animFadeLifecycle;
         private int _targetTop = 0;
+        private Tween _slideDownTween;
 
         private Rectangle _layoutMessageBounds;
         private Rectangle _layoutIconBounds;
@@ -86,14 +75,29 @@ namespace Blish_HUD.Controls {
             _icon     = icon;
             _duration = duration;
 
-            this.Opacity = 0f;
-            this.Size = new Point(NOTIFICATION_WIDTH, NOTIFICATION_HEIGHT);
-            this.ZIndex = Screen.TOOLTIP_BASEZINDEX;
-            this.Location = new Point(Graphics.WindowWidth / 2 - this.Size.X / 2, Graphics.WindowHeight / 4 - this.Size.Y / 2);
+            this.Opacity  = 0f;
+            this.Size     = new Point(NOTIFICATION_WIDTH, NOTIFICATION_HEIGHT);
+            this.ZIndex   = Screen.TOOLTIP_BASEZINDEX;
+            this.Location = new Point(Graphics.SpriteScreen.Width / 2 - this.Size.X / 2, Graphics.SpriteScreen.Height / 4 - this.Size.Y / 2);
 
             _targetTop = this.Top;
         }
-        
+
+        public override void DoUpdate(GameTime gameTime) {
+            // Calculate new top location. Fixes the wrong location before blish finishes resizing.
+            var calculatedNewTop = Graphics.SpriteScreen.Height / 4 - this.Size.Y / 2;
+            if (calculatedNewTop > _targetTop) {
+                _targetTop += calculatedNewTop;
+
+                this._slideDownTween?.Cancel();
+                // Can't cancel a Tween inside Update loop and manually setting the Tween property as the tween will override it after current Update has finished and cancel afterwards.
+                GameService.Animation.Tweener.Update((float)gameTime.ElapsedGameTime.TotalSeconds); // Force above tween to be canceled before next Update loop.
+                this.Top = _targetTop;
+            }
+
+            this.Left = Graphics.SpriteScreen.Width / 2 - this.Size.X / 2;
+        }
+
         protected override CaptureType CapturesInput() {
             return CaptureType.Filter;
         }
@@ -188,7 +192,8 @@ namespace Blish_HUD.Controls {
         private void SlideDown(int distance) {
             _targetTop += distance;
 
-            Animation.Tweener.Tween(this, new {Top = _targetTop}, 0.1f);
+            this._slideDownTween?.Cancel();
+            this._slideDownTween = Animation.Tweener.Tween(this, new {Top = _targetTop }, 0.1f);
 
             if (_opacity < 1f) return;
 
@@ -199,6 +204,9 @@ namespace Blish_HUD.Controls {
 
         /// <inheritdoc />
         protected override void DisposeControl() {
+            this._slideDownTween?.Cancel();
+            this._slideDownTween = null;
+
             _activeScreenNotifications.Remove(this);
 
             base.DisposeControl();

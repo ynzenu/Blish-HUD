@@ -26,7 +26,7 @@ namespace Blish_HUD.Modules.UI.Presenters {
 
             this.Model.ModuleDisabled += ModelOnModuleDisabled;
 
-            this.View.EnableModuleClicked  += ViewOnEnableModuleClicked;
+            this.View.EnableModuleClicked += ViewOnEnableModuleClicked;
             this.View.DisableModuleClicked += ViewOnDisableModuleClicked;
 
             SubscribeToModuleRunState();
@@ -73,14 +73,14 @@ namespace Blish_HUD.Modules.UI.Presenters {
         private void DisplayStaticDetails() {
             // Load static details based on the manifest
 
-            this.View.ModuleName                 = this.Model.Manifest.Name;
-            this.View.ModuleNamespace            = this.Model.Manifest.Namespace;
-            this.View.ModuleDescription          = this.Model.Manifest.Description;
-            this.View.ModuleVersion              = this.Model.Manifest.Version;
+            this.View.ModuleName = this.Model.Manifest.Name;
+            this.View.ModuleNamespace = this.Model.Manifest.Namespace;
+            this.View.ModuleDescription = this.Model.Manifest.Description;
+            this.View.ModuleVersion = this.Model.Manifest.Version;
             this.View.ModuleAssemblyStateDirtied = this.Model.IsModuleAssemblyStateDirty;
 
             this.View.AuthorImage = GetModuleAuthorImage();
-            this.View.AuthorName  = GetModuleAuthor();
+            this.View.AuthorName = GetModuleAuthor();
         }
 
         private void DisplaySettingMenu() {
@@ -104,7 +104,7 @@ namespace Blish_HUD.Modules.UI.Presenters {
         }
 
         private ContextMenuStripItem BuildClearSettingsMenuItem() {
-            var clearSettings = new ContextMenuStripItem() {Text = Strings.GameServices.ModulesService.ModuleOption_ClearSettings };
+            var clearSettings = new ContextMenuStripItem() { Text = Strings.GameServices.ModulesService.ModuleOption_ClearSettings };
 
             clearSettings.BasicTooltipText = (clearSettings.Enabled = !this.Model.Enabled) == true
                                                  ? Strings.GameServices.ModulesService.ModuleOption_ClearSettings_DescriptionEnabled
@@ -119,11 +119,11 @@ namespace Blish_HUD.Modules.UI.Presenters {
             var dirs = this.Model.Manifest.Directories ?? new List<string>(0);
 
             foreach (string dir in dirs) {
-                var    dirItem = new ContextMenuStripItem() { Text = string.Format(Strings.GameServices.ModulesService.ModuleOption_OpenDir, dir.Titleize()) };
+                var dirItem = new ContextMenuStripItem() { Text = string.Format(Strings.GameServices.ModulesService.ModuleOption_OpenDir, dir.Titleize()) };
                 string dirPath = DirectoryUtil.RegisterDirectory(dir);
 
                 dirItem.BasicTooltipText = dirPath;
-                dirItem.Enabled          = Directory.Exists(dirPath);
+                dirItem.Enabled = Directory.Exists(dirPath);
 
                 dirItem.Click += delegate {
                     Process.Start("explorer.exe", $"/open, \"{dirPath}\\\"");
@@ -134,9 +134,16 @@ namespace Blish_HUD.Modules.UI.Presenters {
         }
 
         private void DisplayStateDetails() {
-            this.View.ModuleState = Model.ModuleInstance?.RunState ?? ModuleRunState.Unloaded;
+            if (!GameService.Module.ModuleIsExplicitlyIncompatible(this.Model)) {
+                var runState = Model.ModuleInstance?.RunState ?? ModuleRunState.Unloaded;
+                this.View.ModuleErrorReason = runState == ModuleRunState.FatalError ? this.Model.ModuleInstance?.ErrorReason : null;
 
-            GameService.Settings.Save();
+                this.View.ModuleState = runState;
+
+                GameService.Settings.Save();
+            } else {
+                this.View.SetCustomState(Strings.GameServices.ModulesService.ModuleState_Custom_ExplicitlyIncompatible, Control.StandardColors.Yellow);
+            }
 
             DisplaySettingsView(this.View.ModuleState == ModuleRunState.Loaded);
         }
@@ -156,16 +163,16 @@ namespace Blish_HUD.Modules.UI.Presenters {
         }
 
         private void DisplayStatedOptions() {
-            this.View.CanEnable  = GetModuleCanEnable();
+            this.View.CanEnable = GetModuleCanEnable();
             this.View.CanDisable = GetModuleCanDisable();
         }
 
         private AsyncTexture2D GetModuleAuthorImage() {
             if (this.Model.Manifest.Contributors?.Count > 1) {
-                return GameService.Content.GetTexture("common/157112");
+                return AsyncTexture2D.FromAssetId(157112);
             }
 
-            return GameService.Content.GetTexture("common/733268");
+            return AsyncTexture2D.FromAssetId(733268);
         }
 
         private string GetModuleAuthor() {
@@ -214,7 +221,11 @@ namespace Blish_HUD.Modules.UI.Presenters {
             // Can't enable if already enabled
             if (this.Model.Enabled) return false;
 
-            // can't enable if model assembly is dirty
+            // Can't enable if the module is on the explicit
+            // "incompatible" list.
+            if (GameService.Module.ModuleIsExplicitlyIncompatible(this.Model)) return false;
+
+            // Can't enable if module's assembly is dirty
             // (i.e. previous version of it has been loaded)
             if (this.Model.IsModuleAssemblyStateDirty) return false;
 

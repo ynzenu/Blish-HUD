@@ -19,7 +19,7 @@ namespace Blish_HUD.Strings.GameServices {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class OverlayService {
@@ -61,6 +61,55 @@ namespace Blish_HUD.Strings.GameServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Join our Discord.
+        /// </summary>
+        internal static string About_DiscordCallToAction_Button {
+            get {
+                return ResourceManager.GetString("About_DiscordCallToAction_Button", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  
+        ///Need help or just want to
+        ///participate in the conversation?.
+        /// </summary>
+        internal static string About_DiscordCallToAction_Question {
+            get {
+                return ResourceManager.GetString("About_DiscordCallToAction_Question", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  
+        ///The majority of Blish HUD&apos;s feedback, development, and other discussions take place in our.
+        /// </summary>
+        internal static string About_DiscordCallToAction1 {
+            get {
+                return ResourceManager.GetString("About_DiscordCallToAction1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discord.
+        /// </summary>
+        internal static string About_DiscordCallToAction2 {
+            get {
+                return ResourceManager.GetString("About_DiscordCallToAction2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  channel.
+        /// .
+        /// </summary>
+        internal static string About_DiscordCallToAction3 {
+            get {
+                return ResourceManager.GetString("About_DiscordCallToAction3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ©2010-{0} ArenaNet, LLC. All rights reserved. Guild Wars, Guild Wars 2, Heart of Thorns,
         ///Guild Wars 2: Path of Fire, ArenaNet, NCSOFT, the Interlocking NC Logo, and all associated
         ///logos and designs are trademarks or registered trademarks of NCSOFT Corporation. All other
@@ -92,6 +141,98 @@ namespace Blish_HUD.Strings.GameServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 
+        ///
+        ///Blish HUD
+        ///
+        ///MIT License
+        ///
+        ///Copyright (c) 2022 Dade Lamkins
+        ///
+        ///Permission is hereby granted, free of charge, to any person obtaining a copy
+        ///of this software and associated documentation files (the &quot;Software&quot;), to deal
+        ///in the Software without restriction, including without limitation the rights
+        ///to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        ///copies of the Software, and to permit persons to whom the Software is
+        ///furnished to do so, subject to the following conditions:
+        ///
+        ///The  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string AboutThirdPartySoftware {
+            get {
+                return ResourceManager.GetString("AboutThirdPartySoftware", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Software Licences.
+        /// </summary>
+        internal static string AboutThirdPartySoftwareHeading {
+            get {
+                return ResourceManager.GetString("AboutThirdPartySoftwareHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connected to ArcDPS via bridge plugin..
+        /// </summary>
+        internal static string ConnectionStatus_ArcDPSBridge_Connected {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_ArcDPSBridge_Connected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No connection received from bridge.
+        ///
+        ///It might not be installed..
+        /// </summary>
+        internal static string ConnectionStatus_ArcDPSBridge_Disconnected {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_ArcDPSBridge_Disconnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ArcDPS Bridge.
+        /// </summary>
+        internal static string ConnectionStatus_ArcDPSBridge_Name {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_ArcDPSBridge_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connected to MumbleLink with name &apos;{0}&apos;..
+        /// </summary>
+        internal static string ConnectionStatus_Mumble_Connected {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_Mumble_Connected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to connect to MumbleLink with name &apos;{0}&apos;.
+        ///
+        ///Check what launch arguments were used
+        ///to launch both Guild Wars 2 and Blish HUD..
+        /// </summary>
+        internal static string ConnectionStatus_Mumble_Disconnected {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_Mumble_Disconnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MumbleLink.
+        /// </summary>
+        internal static string ConnectionStatus_Mumble_Name {
+            get {
+                return ResourceManager.GetString("ConnectionStatus_Mumble_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Home.
         /// </summary>
         internal static string HomeTab {
@@ -101,11 +242,137 @@ namespace Blish_HUD.Strings.GameServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dynamic HUD.
+        /// </summary>
+        internal static string OverlayDynamicHUDSection {
+            get {
+                return ResourceManager.GetString("OverlayDynamicHUDSection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Overlay Settings.
         /// </summary>
         internal static string OverlaySettingsSection {
             get {
                 return ResourceManager.GetString("OverlaySettingsSection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes in v{0}.
+        /// </summary>
+        internal static string SelfUpdate_ChangesInVersion {
+            get {
+                return ResourceManager.GetString("SelfUpdate_ChangesInVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Prerelease Available.
+        /// </summary>
+        internal static string SelfUpdate_NewPrereleaseAvailable {
+            get {
+                return ResourceManager.GetString("SelfUpdate_NewPrereleaseAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Release Available.
+        /// </summary>
+        internal static string SelfUpdate_NewUpdateAvailable {
+            get {
+                return ResourceManager.GetString("SelfUpdate_NewUpdateAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Pending Updates.
+        /// </summary>
+        internal static string SelfUpdate_NoPendingUpdates {
+            get {
+                return ResourceManager.GetString("SelfUpdate_NoPendingUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to Check for Updates.
+        /// </summary>
+        internal static string SelfUpdate_PendingUpdatesQueryFailed {
+            get {
+                return ResourceManager.GetString("SelfUpdate_PendingUpdatesQueryFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading prerelease v{0}....
+        /// </summary>
+        internal static string SelfUpdate_Progress_DownloadingPrereleaseArchive {
+            get {
+                return ResourceManager.GetString("SelfUpdate_Progress_DownloadingPrereleaseArchive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading release v{0}....
+        /// </summary>
+        internal static string SelfUpdate_Progress_DownloadingReleaseArchive {
+            get {
+                return ResourceManager.GetString("SelfUpdate_Progress_DownloadingReleaseArchive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extracting new executable....
+        /// </summary>
+        internal static string SelfUpdate_Progress_ExtractingExecutable {
+            get {
+                return ResourceManager.GetString("SelfUpdate_Progress_ExtractingExecutable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restarting....
+        /// </summary>
+        internal static string SelfUpdate_Progress_Restarting {
+            get {
+                return ResourceManager.GetString("SelfUpdate_Progress_Restarting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restarting in {0}....
+        /// </summary>
+        internal static string SelfUpdate_Progress_RestartingIn {
+            get {
+                return ResourceManager.GetString("SelfUpdate_Progress_RestartingIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verifying checksum....
+        /// </summary>
+        internal static string SelfUpdate_Progress_VerifyingChecksum {
+            get {
+                return ResourceManager.GetString("SelfUpdate_Progress_VerifyingChecksum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update to Prerelease v{0}.
+        /// </summary>
+        internal static string SelfUpdate_UpdateToPrereleaseMenuStripText {
+            get {
+                return ResourceManager.GetString("SelfUpdate_UpdateToPrereleaseMenuStripText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update to Release v{0}.
+        /// </summary>
+        internal static string SelfUpdate_UpdateToReleaseMenuStripText {
+            get {
+                return ResourceManager.GetString("SelfUpdate_UpdateToReleaseMenuStripText", resourceCulture);
             }
         }
         
@@ -146,6 +413,115 @@ namespace Blish_HUD.Strings.GameServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Closes Blish windows when focused and escape key is pressed.
+        /// </summary>
+        internal static string Setting_CloseWindowOnEscape_Description {
+            get {
+                return ResourceManager.GetString("Setting_CloseWindowOnEscape_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Close Window on Escape.
+        /// </summary>
+        internal static string Setting_CloseWindowOnEscape_DisplayName {
+            get {
+                return ResourceManager.GetString("Setting_CloseWindowOnEscape_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Controls visibility during cut scenes and loading screens..
+        /// </summary>
+        internal static string Setting_DynamicHUDLoading_Description {
+            get {
+                return ResourceManager.GetString("Setting_DynamicHUDLoading_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cut Scene / Loading Screen.
+        /// </summary>
+        internal static string Setting_DynamicHUDLoading_DisplayName {
+            get {
+                return ResourceManager.GetString("Setting_DynamicHUDLoading_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Controls visibility of the Menu bar located in the upper-left of the screen..
+        /// </summary>
+        internal static string Setting_DynamicHUDMenuBar_Description {
+            get {
+                return ResourceManager.GetString("Setting_DynamicHUDMenuBar_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Menu Bar.
+        /// </summary>
+        internal static string Setting_DynamicHUDMenuBar_DisplayName {
+            get {
+                return ResourceManager.GetString("Setting_DynamicHUDMenuBar_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Controls visibility of the windows..
+        /// </summary>
+        internal static string Setting_DynamicHUDWindows_Description {
+            get {
+                return ResourceManager.GetString("Setting_DynamicHUDWindows_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows.
+        /// </summary>
+        internal static string Setting_DynamicHUDWindows_DisplayName {
+            get {
+                return ResourceManager.GetString("Setting_DynamicHUDWindows_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hide all of Blish interface for marvelous screenshots.
+        /// </summary>
+        internal static string Setting_HideInterfaceKeybind_Description {
+            get {
+                return ResourceManager.GetString("Setting_HideInterfaceKeybind_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hide interface.
+        /// </summary>
+        internal static string Setting_HideInterfaceKeybind_DisplayName {
+            get {
+                return ResourceManager.GetString("Setting_HideInterfaceKeybind_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Used for interacting with the environment.
+        ///For the best experience set this to the same key as in the game..
+        /// </summary>
+        internal static string Setting_InteractKey_Description {
+            get {
+                return ResourceManager.GetString("Setting_InteractKey_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interact.
+        /// </summary>
+        internal static string Setting_InteractKey_DisplayName {
+            get {
+                return ResourceManager.GetString("Setting_InteractKey_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to When enabled, Blish HUD will be shown in the taskbar while running..
         /// </summary>
         internal static string Setting_ShowInTaskbar_Description {
@@ -160,6 +536,35 @@ namespace Blish_HUD.Strings.GameServices {
         internal static string Setting_ShowInTaskbar_DisplayName {
             get {
                 return ResourceManager.GetString("Setting_ShowInTaskbar_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If enabled, prerelease versions of both modules and Blish HUD itself become available through the interface.
+        ///
+        ///WARNING: Prerelease modules or Blish HUD versions may be unstable.  By enabling this feature, you acknowledge that you&apos;d like to be a guinea pig.  Do not use prerelease modules / versions of Blish HUD unless you&apos;re willing to experience crashes, bugs, or other issues..
+        /// </summary>
+        internal static string Setting_ShowPreviews_Description {
+            get {
+                return ResourceManager.GetString("Setting_ShowPreviews_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preview Releases.
+        /// </summary>
+        internal static string Setting_ShowPreviews_DisplayName {
+            get {
+                return ResourceManager.GetString("Setting_ShowPreviews_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  (Disabled because you launched Blish HUD with --startgw2, --pid, -g, or -P).
+        /// </summary>
+        internal static string Setting_StayInTray_AppendDisabled {
+            get {
+                return ResourceManager.GetString("Setting_StayInTray_AppendDisabled", resourceCulture);
             }
         }
         
@@ -179,6 +584,24 @@ namespace Blish_HUD.Strings.GameServices {
         internal static string Setting_StayInTray_DisplayName {
             get {
                 return ResourceManager.GetString("Setting_StayInTray_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set keybind to toggle the main window of Blish HUD.
+        /// </summary>
+        internal static string Setting_ToggleBlishWindowKeybind_Description {
+            get {
+                return ResourceManager.GetString("Setting_ToggleBlishWindowKeybind_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggle Blish HUD window.
+        /// </summary>
+        internal static string Setting_ToggleBlishWindowKeybind_DisplayName {
+            get {
+                return ResourceManager.GetString("Setting_ToggleBlishWindowKeybind_DisplayName", resourceCulture);
             }
         }
         

@@ -22,19 +22,12 @@ namespace Blish_HUD.Controls {
         private const int WINDOWCONTENT_WIDTH  = 1024;
         private const int WINDOWCONTENT_HEIGHT = 700;
 
-        #region Load Static
+        #region Textures
 
-        private static readonly Texture2D _textureDefaultBackround;
-        private static readonly Texture2D _textureSplitLine;
-        private static readonly Texture2D _textureBlackFade;
-        private static readonly Texture2D _textureTabActive;
-
-        static TabbedWindow() {
-            _textureDefaultBackround = Content.GetTexture("controls/window/502049");
-            _textureSplitLine        = Content.GetTexture("605024");
-            _textureBlackFade        = Content.GetTexture("fade-down-46");
-            _textureTabActive        = Content.GetTexture("window-tab-active");
-        }
+        private static readonly Texture2D      _textureDefaultBackround = Content.GetTexture("controls/window/502049");
+        private readonly        AsyncTexture2D _textureSplitLine        = AsyncTexture2D.FromAssetId(605024);
+        private static readonly Texture2D      _textureBlackFade        = Content.GetTexture("fade-down-46");
+        private static readonly Texture2D      _textureTabActive        = Content.GetTexture("window-tab-active");
 
         #endregion
 
@@ -74,7 +67,7 @@ namespace Blish_HUD.Controls {
 
         public TabbedWindow() {
             var tabWindowTexture = _textureDefaultBackround;
-            tabWindowTexture = tabWindowTexture.Duplicate().SetRegion(0, 0, 64, _textureDefaultBackround.Height, Color.Transparent);   
+            tabWindowTexture = tabWindowTexture.Duplicate().SetRegion(0, 0, 64, _textureDefaultBackround.Height, Color.Transparent);
 
             this.ConstructWindow(tabWindowTexture, new Vector2(25, 33), new Rectangle(0, 0, 1100, 745), new Thickness(60, 75, 45, 25), 40);
 

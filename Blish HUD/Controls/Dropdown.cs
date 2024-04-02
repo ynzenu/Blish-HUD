@@ -14,7 +14,8 @@ namespace Blish_HUD.Controls {
 
         private class DropdownPanel : Control {
 
-            private const int TOOLTIP_HOVER_DELAY = 800;
+            private const int TOOLTIP_HOVER_DELAY    = 800;
+            private const int SCROLL_CLOSE_THRESHOLD = 20;
 
             private Dropdown _assocDropdown;
 
@@ -31,12 +32,15 @@ namespace Blish_HUD.Controls {
 
             private double _hoverTime;
 
+            private int _startTop;
+
             private DropdownPanel(Dropdown assocDropdown) {
                 _assocDropdown = assocDropdown;
+                _size          = new Point(_assocDropdown.Width, _assocDropdown.Height * _assocDropdown.Items.Count);
+                _location      = GetPanelLocation();
+                _zIndex        = Screen.TOOLTIP_BASEZINDEX;
 
-                _size     = new Point(_assocDropdown.Width, _assocDropdown.Height * _assocDropdown.Items.Count);
-                _location = GetPanelLocation();
-                _zIndex   = Screen.TOOLTIP_BASEZINDEX;
+                _startTop = _location.Y;
 
                 this.Parent = Graphics.SpriteScreen;
 
@@ -96,8 +100,17 @@ namespace Blish_HUD.Controls {
                                             : string.Empty;
             }
 
+            private void UpdateDropdownLocation() {
+                _location = GetPanelLocation();
+
+                if (Math.Abs(_location.Y - _startTop) > SCROLL_CLOSE_THRESHOLD) {
+                    Dispose();
+                }
+            }
+
             public override void DoUpdate(GameTime gameTime) {
                 UpdateHoverTimer(gameTime.ElapsedGameTime.TotalMilliseconds);
+                UpdateDropdownLocation();
             }
 
             protected override void OnClick(MouseEventArgs e) {
@@ -165,18 +178,11 @@ namespace Blish_HUD.Controls {
 
         #region Load Static
 
-        private static readonly Texture2D _textureInputBox;
+        private static readonly Texture2D _textureInputBox = Content.GetTexture("input-box");
 
-        private static readonly TextureRegion2D _textureArrow;
-        private static readonly TextureRegion2D _textureArrowActive;
-
-        static Dropdown() {
-            _textureInputBox = Content.GetTexture("input-box");
-
-            _textureArrow       = Resources.Control.TextureAtlasControl.GetRegion("inputboxes/dd-arrow");
-            _textureArrowActive = Resources.Control.TextureAtlasControl.GetRegion("inputboxes/dd-arrow-active");
-        }
-
+        private static readonly TextureRegion2D _textureArrow       = Resources.Control.TextureAtlasControl.GetRegion("inputboxes/dd-arrow");
+        private static readonly TextureRegion2D _textureArrowActive = Resources.Control.TextureAtlasControl.GetRegion("inputboxes/dd-arrow-active");
+        
         #endregion
 
         #region Events

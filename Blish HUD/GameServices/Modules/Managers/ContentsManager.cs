@@ -20,7 +20,7 @@ namespace Blish_HUD.Modules.Managers {
             Logger.Debug("New {contentsManagerName} instance utilizing a {dataReaderType} data reader.", nameof(ContentsManager), _reader.GetType().FullName);
         }
 
-        public static ContentsManager GetModuleInstance(ModuleManager module) {
+        internal static ContentsManager GetModuleInstance(ModuleManager module) {
             return new ContentsManager(module.DataReader.GetSubPath(REF_NAME));
         }
 
@@ -41,7 +41,7 @@ namespace Blish_HUD.Modules.Managers {
             using (var textureStream = _reader.GetFileStream(texturePath)) {
                 if (textureStream != null) {
                     Logger.Debug("Successfully loaded texture {dataReaderFilePath}.", _reader.GetPathRepresentation(texturePath));
-                    return TextureUtil.FromStreamPremultiplied(GameService.Graphics.GraphicsDevice, textureStream);
+                    return TextureUtil.FromStreamPremultiplied(textureStream);
                 }
             }
 
@@ -70,7 +70,10 @@ namespace Blish_HUD.Modules.Managers {
             long effectDataLength = _reader.GetFileBytes(effectPath, out byte[] effectData);
 
             if (effectDataLength > 0) {
-                return new Effect(GameService.Graphics.GraphicsDevice, effectData, 0, (int)effectDataLength);
+                using var ctx    = GameService.Graphics.LendGraphicsDeviceContext();
+                var       effect = new Effect(ctx.GraphicsDevice, effectData, 0, (int)effectDataLength);
+
+                return effect;
             }
 
             return null;

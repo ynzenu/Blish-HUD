@@ -19,7 +19,7 @@ namespace Blish_HUD.Strings.GameServices {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ModulesService {
@@ -322,6 +322,15 @@ namespace Blish_HUD.Strings.GameServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Module Version Is Incompatible.
+        /// </summary>
+        internal static string ModuleState_Custom_ExplicitlyIncompatible {
+            get {
+                return ResourceManager.GetString("ModuleState_Custom_ExplicitlyIncompatible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disabled.
         /// </summary>
         internal static string ModuleState_Disabled {
@@ -431,11 +440,29 @@ namespace Blish_HUD.Strings.GameServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Preview Release.
+        /// </summary>
+        internal static string PkgManagement_IsPreview {
+            get {
+                return ResourceManager.GetString("PkgManagement_IsPreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Blish HUD requires a restart before some modules can be re-enabled..
         /// </summary>
         internal static string PkgManagement_ModulesNeedRestart {
             get {
                 return ResourceManager.GetString("PkgManagement_ModulesNeedRestart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to More Info.
+        /// </summary>
+        internal static string PkgManagement_MoreInfo {
+            get {
+                return ResourceManager.GetString("PkgManagement_MoreInfo", resourceCulture);
             }
         }
         

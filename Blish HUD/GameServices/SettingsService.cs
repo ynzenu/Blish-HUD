@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using Blish_HUD.Content.Serialization;
 using Blish_HUD.Controls;
 using Blish_HUD.Settings;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
-using Container = Blish_HUD.Controls.Container;
-using Point = Microsoft.Xna.Framework.Point;
 
 namespace Blish_HUD {
 
@@ -40,7 +38,10 @@ namespace Blish_HUD {
                 TypeNameHandling           = TypeNameHandling.Auto,
                 Converters = new List<JsonConverter>() {
                     new SettingCollection.SettingCollectionConverter(),
-                    new SettingEntry.SettingEntryConverter()
+                    new SettingEntry.SettingEntryConverter(),
+
+                    // Types that need help:
+                    new SemVerConverter()
                 }
             };
 
@@ -59,6 +60,8 @@ namespace Blish_HUD {
                 rawSettings = File.ReadAllText(_settingsPath);
 
                 this.Settings = JsonConvert.DeserializeObject<SettingCollection>(rawSettings, JsonReaderSettings) ?? new SettingCollection(false);
+            } catch (UnauthorizedAccessException) {
+                Blish_HUD.Debug.Contingency.NotifyFileSaveAccessDenied(_settingsPath, Strings.GameServices.Debug.ContingencyMessages.FileSaveAccessDenied_Action_ToLoadSettings);
             } catch (Exception ex) {
                 if (alreadyFailed) {
                     Logger.Warn(ex, "Failed to load settings due to an unexpected exception while attempting to read them. Already tried creating a new settings file, so we won't try again.");
@@ -100,9 +103,18 @@ namespace Blish_HUD {
             string rawSettings = JsonConvert.SerializeObject(this.Settings, Formatting.Indented, JsonReaderSettings);
 
             try {
-                using (var settingsWriter = new StreamWriter(_settingsPath, false)) {
+                string tempSettingsPath = $"{_settingsPath}.new";
+                using (var settingsWriter = new StreamWriter(tempSettingsPath, false)) {
                     settingsWriter.Write(rawSettings);
                 }
+
+                if (File.Exists(_settingsPath)) {
+                    File.Replace(tempSettingsPath, _settingsPath, null);
+                } else {
+                    File.Move(tempSettingsPath, _settingsPath);
+                }
+            } catch (UnauthorizedAccessException) {
+                Blish_HUD.Debug.Contingency.NotifyFileSaveAccessDenied(_settingsPath, Strings.GameServices.Debug.ContingencyMessages.FileSaveAccessDenied_Action_ToSaveSettings);
             } catch (Exception ex) {
                 Logger.Warn(ex, "Failed to save settings.");
                 return;

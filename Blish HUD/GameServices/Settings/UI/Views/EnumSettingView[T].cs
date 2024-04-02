@@ -92,6 +92,7 @@ namespace Blish_HUD.Settings.UI.Views {
         }
 
         protected override void RefreshDescription(string description) {
+            _displayNameLabel.BasicTooltipText = description;
             _enumDropdown.BasicTooltipText = description;
         }
 
@@ -100,7 +101,9 @@ namespace Blish_HUD.Settings.UI.Views {
         }
 
         protected override void Unload() {
-            _enumDropdown.ValueChanged -= EnumDropdownOnValueChanged;
+            if (_enumDropdown != null) {
+                _enumDropdown.ValueChanged -= EnumDropdownOnValueChanged;
+            }
         }
 
     }

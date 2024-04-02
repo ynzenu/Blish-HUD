@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,11 +9,7 @@ namespace Blish_HUD.Controls {
 
         #region Load Static
 
-        private static readonly Texture2D _textureWindowTexture;
-
-        static KeybindingAssignmentWindow() {
-            _textureWindowTexture = Content.GetTexture("hotkey-window");
-        }
+        private static readonly Texture2D _textureWindowTexture = Content.GetTexture("hotkey-window");
 
         #endregion
 
@@ -78,8 +70,6 @@ namespace Blish_HUD.Controls {
         private string _assignmentDisplayString;
 
         public KeybindingAssignmentWindow(string assignmentName, ModifierKeys modifierKeys = ModifierKeys.None, Keys primaryKey = Keys.None) {
-            WindowBase2.RegisterWindow(this);
-
             _assignmentName = assignmentName;
             _modifierKeys   = modifierKeys;
             _primaryKey     = primaryKey;
@@ -182,8 +172,10 @@ namespace Blish_HUD.Controls {
         public override void RecalculateLayout() {
             base.RecalculateLayout();
 
-            if (this.Parent != null) {
-                _size = this.Parent.Size;
+            var parent = this.Parent;
+
+            if (parent != null) {
+                _size = parent.Size;
 
                 var distanceInwards = new Point(_size.X / 2 - _normalizedWindowRegion.Width  / 2,
                                                 _size.Y / 2 - _normalizedWindowRegion.Height / 2);
@@ -212,7 +204,6 @@ namespace Blish_HUD.Controls {
             base.DisposeControl();
 
             GameService.Input.Keyboard.UnsetTextInputListner(BlockGameInput);
-            WindowBase2.UnregisterWindow(this);
 
             Input.Keyboard.KeyStateChanged -= KeyboardOnKeyStateChanged;
         }
@@ -222,6 +213,7 @@ namespace Blish_HUD.Controls {
         public bool   TopMost              => true;
         public double LastInteraction      => double.MaxValue;
         public bool   CanClose             => false;
+        public bool   CanCloseWithEscape   => false;
         public void   BringWindowToFront() { /* NOOP */ }
 
     }

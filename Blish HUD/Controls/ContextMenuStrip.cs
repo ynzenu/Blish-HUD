@@ -26,13 +26,11 @@ namespace Blish_HUD.Controls {
 
         private static readonly List<WeakReference<ContextMenuStrip>> _contextMenuStrips = new List<WeakReference<ContextMenuStrip>>();
 
-        private static readonly Texture2D _textureMenuEdge;
+        private static readonly Texture2D _textureMenuEdge = Content.GetTexture("scrollbar-track");
 
         private static double _lastOpenTime;
 
         static ContextMenuStrip() {
-            _textureMenuEdge = Content.GetTexture("scrollbar-track");
-
             Input.Mouse.LeftMouseButtonPressed += HandleMouseButtonPressed;
             Input.Mouse.RightMouseButtonPressed += HandleMouseButtonPressed;
         }
@@ -70,6 +68,8 @@ namespace Blish_HUD.Controls {
 
         private (Point Position, int DownOffset, int UpOffset) _targetOffset;
 
+        protected Func<IEnumerable<ContextMenuStripItem>> GetItemsDelegate { get; private set; }
+
         public ContextMenuStrip() {
             this.Visible = false;
             this.Width = CONTROL_WIDTH;
@@ -78,9 +78,17 @@ namespace Blish_HUD.Controls {
             RegisterContextMenuStrip(this);
         }
 
+        public ContextMenuStrip(Func<IEnumerable<ContextMenuStripItem>> getItemsDelegate) : this() {
+            this.GetItemsDelegate = getItemsDelegate;
+        }
+
         protected override void OnShown(EventArgs e) {
             // Keep track of when we opened for debounce
             _lastOpenTime = GameService.Overlay.CurrentGameTime.TotalGameTime.TotalMilliseconds;
+
+            if (this.GetItemsDelegate != null) {
+                AddMenuItems(this.GetItemsDelegate());
+            }
 
             this.Parent = GameService.Graphics.SpriteScreen;
 
@@ -93,9 +101,12 @@ namespace Blish_HUD.Controls {
             base.OnShown(e);
         }
 
-        /// <inheritdoc />
         protected override void OnHidden(EventArgs e) {
             this.Parent = null;
+
+            if (this.GetItemsDelegate != null) {
+                ClearChildren();
+            }
 
             base.OnHidden(e);
         }
@@ -134,11 +145,14 @@ namespace Blish_HUD.Controls {
         }
 
         public override void Hide() {
-            this.Visible = false;
-
-            foreach (var cmsiChild in this.Children.Select(otherChild => otherChild as ContextMenuStripItem)) {
-                cmsiChild?.Submenu?.Hide();
+            var children = _children.ToArray();
+            foreach (var cmsiChild in children.Select(otherChild => otherChild as ContextMenuStripItem)) {
+				if (cmsiChild is { Submenu: { MouseOver: false } }) {
+                    cmsiChild.Submenu.Hide();
+                }
             }
+
+            this.Visible = false;
         }
 
         protected override void OnChildAdded(ChildChangedEventArgs e) {
@@ -195,8 +209,14 @@ namespace Blish_HUD.Controls {
 
         private void ChildOnMouseEntered(object sender, MouseEventArgs e) {
             // Stop showing submenus if adjacent menu items are moused over
-            foreach (var ocCmsi in _children.Except(new[] { sender }).Select(otherChild => otherChild as ContextMenuStripItem)) {
+            var children = _children.ToArray();
+            foreach (var ocCmsi in children.Select(otherChild => otherChild as ContextMenuStripItem)) {
                 ocCmsi?.Submenu?.Hide();
+            }
+
+            // And then make sure we're showing just the first level of the moused-over submenu
+            if (sender is ContextMenuStripItem cmsi) {
+                cmsi.Submenu?.Show();
             }
         }
 

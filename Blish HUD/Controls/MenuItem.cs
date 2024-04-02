@@ -19,13 +19,9 @@ namespace Blish_HUD.Controls {
         
         private const int ARROW_SIZE = 16;
 
-        #region Load Static
+        #region Textures
 
-        private static readonly Texture2D _textureArrow;
-
-        static MenuItem() {
-            _textureArrow = Content.GetTexture("156057");
-        }
+        private readonly AsyncTexture2D _textureArrow = AsyncTexture2D.FromAssetId(156057);
 
         #endregion
 
@@ -79,7 +75,7 @@ namespace Blish_HUD.Controls {
             set => SetProperty(ref _menuDepth, value);
         }
 
-        protected string _text = "";
+        protected string _text;
         public string Text {
             get => _text;
             set => SetProperty(ref _text, value);
@@ -114,9 +110,19 @@ namespace Blish_HUD.Controls {
         public bool Checked {
             get => _checked;
             set {
-                if (SetProperty(ref _checked, value)) 
+                if (SetProperty(ref _checked, value)) {
                     OnCheckedChanged(new CheckChangedEvent(_checked));
+                }
             }
+        }
+
+        protected Color _textColor = Color.White;
+        /// <summary>
+        /// The color of the <see cref="Text"/>.
+        /// </summary>
+        public Color TextColor {
+            get => _textColor;
+            set => SetProperty(ref _textColor, value);
         }
 
         #endregion
@@ -256,13 +262,20 @@ namespace Blish_HUD.Controls {
             if (_canCheck && this.MouseOverIconBox) { 
                 // Mouse was clicked inside of the checkbox
                 Checked = !Checked;
+
             } else if (_overSection && !_children.IsEmpty) {
                 // Mouse was clicked inside of the mainbody of the MenuItem
+                GameService.Content.PlaySoundEffectByName($"menu-click-{RandomUtil.GetRandom(1,4)}");
                 ToggleAccordionState();
-            } else if (_overSection && _canCheck) { 
+
+            } else if (_overSection && _canCheck) {
                 // Mouse was clicked inside of the mainbody of the MenuItem,
                 // but we have no children, so we toggle checkbox
                 Checked = !Checked;
+
+            } else if (!_canCheck && _children.IsEmpty) {
+                // Cannot be checked and has no children, so we probably navigate views.
+                GameService.Content.PlaySoundEffectByName("menu-item-click");
             }
 
             if (_children.IsEmpty) {
@@ -325,7 +338,6 @@ namespace Blish_HUD.Controls {
         
         public bool ToggleAccordionState() {
             this.Collapsed = !_collapsed;
-
             return _collapsed;
         }
 
@@ -415,10 +427,7 @@ namespace Blish_HUD.Controls {
                 currentLeftSidePadding += ICON_SIZE + ICON_PADDING;
             }
 
-            // TODO: Evaluate menu item text color
-            // Technically, this text color should be Color.FromNonPremultiplied(255, 238, 187, 255),
-            // but it doesn't look good on the purple background of the main window
-            spriteBatch.DrawStringOnCtrl(this, _text, Content.DefaultFont16, new Rectangle(currentLeftSidePadding, 0, this.Width - (currentLeftSidePadding - ICON_PADDING), this.MenuItemHeight), Color.White, true, true);
+            spriteBatch.DrawStringOnCtrl(this, _text, Content.DefaultFont16, new Rectangle(currentLeftSidePadding, 0, this.Width - (currentLeftSidePadding - ICON_PADDING), this.MenuItemHeight), _textColor, true, true);
         }
 
     }

@@ -65,19 +65,12 @@ namespace Blish_HUD.Controls {
         private const int DEFAULT_EVENTSUMMARY_HEIGHT  = 100;
         private const int DEFAULT_BOTTOMSECTION_HEIGHT = 35;
 
-        #region Load Static
+        #region Textures
 
-        private static readonly Texture2D _textureFillCrest;
-        private static readonly Texture2D _textureVignette;
-        private static readonly Texture2D _textureCornerButton;
-        private static readonly Texture2D _textureBottomSectionSeparator;
-
-        static DetailsButton() {
-            _textureFillCrest              = Content.GetTexture(@"controls/detailsbutton/605004");
-            _textureVignette               = Content.GetTexture(@"controls/detailsbutton/605003");
-            _textureCornerButton           = Content.GetTexture(@"controls/detailsbutton/605011");
-            _textureBottomSectionSeparator = Content.GetTexture(@"157218");
-        }
+        private readonly AsyncTexture2D _textureFillCrest              = AsyncTexture2D.FromAssetId(605004);
+        private readonly AsyncTexture2D _textureVignette               = AsyncTexture2D.FromAssetId(605003);
+        private readonly AsyncTexture2D _textureCornerButton           = AsyncTexture2D.FromAssetId(605011);
+        private readonly AsyncTexture2D _textureBottomSectionSeparator = AsyncTexture2D.FromAssetId(157218);
 
         #endregion
 

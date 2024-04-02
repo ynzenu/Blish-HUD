@@ -4,11 +4,12 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Xml;
+using Blish_HUD.Debug;
 using Blish_HUD.GameIntegration.GfxSettings;
 using Blish_HUD.GameServices;
 
 namespace Blish_HUD.GameIntegration {
-    public class GfxSettingsIntegration : ServiceModule<GameIntegrationService> {
+    public sealed class GfxSettingsIntegration : ServiceModule<GameIntegrationService> {
 
         private static readonly Logger Logger = Logger.GetLogger<GfxSettingsIntegration>();
 
@@ -20,6 +21,11 @@ namespace Blish_HUD.GameIntegration {
         private const int FILELOCKED_ATTEMPTS = 3;
 
         public event EventHandler<EventArgs> GfxSettingsReloaded;
+
+        /// <summary>
+        /// Indicates that we've successfully read and parsed the contents of the GFXSettings.Gw2-64.exe.xml file.
+        /// </summary>
+        public bool IsAvailable { get; private set; }
 
         public FrameLimitSetting? FrameLimit => GetStringEnumSetting(FrameLimitSetting.FromString);
 
@@ -93,7 +99,7 @@ namespace Blish_HUD.GameIntegration {
 
         private bool _loadLock;
 
-        public GfxSettingsIntegration(GameIntegrationService service) : base(service) { /* NOOP */ }
+        internal GfxSettingsIntegration(GameIntegrationService service) : base(service) { /* NOOP */ }
 
         public override void Load() {
             _service.Gw2Instance.Gw2Started += Gw2Proc_Gw2Started;
@@ -130,12 +136,20 @@ namespace Blish_HUD.GameIntegration {
         }
 
         private void EnableWatchDir() {
-            _fileSystemWatcher                       = new FileSystemWatcher();
-            _fileSystemWatcher.Path                  = Path.Combine(_service.Gw2Instance.AppDataPath, GFXSETTINGS_PATH);
-            _fileSystemWatcher.NotifyFilter          = NotifyFilters.LastWrite;
-            _fileSystemWatcher.Filter                = GFXSETTINGS_NAME;
-            _fileSystemWatcher.EnableRaisingEvents   = true;
-            _fileSystemWatcher.IncludeSubdirectories = false;
+            string gw2AppDataPath = Path.Combine(_service.Gw2Instance.AppDataPath, GFXSETTINGS_PATH);
+
+            if (!Directory.Exists(gw2AppDataPath)) {
+                Logger.Warn("Guild Wars 2 AppData path '{appDataPath}' does not appear to exist so GfxSettings will not be loaded.", gw2AppDataPath);
+                return;
+            }
+
+            _fileSystemWatcher = new FileSystemWatcher {
+                Path                  = gw2AppDataPath,
+                NotifyFilter          = NotifyFilters.LastWrite,
+                Filter                = GFXSETTINGS_NAME,
+                EnableRaisingEvents   = true,
+                IncludeSubdirectories = false
+            };
 
             _fileSystemWatcher.Changed += GfxSettingsFileChanged;
         }
@@ -185,7 +199,6 @@ namespace Blish_HUD.GameIntegration {
         }
 
         private async Task LoadGfxSettings(int remainingAttempts) {
-
             try {
                 if (TryGetGfxSettingsFileStream(out var gfxSettingsFileStream)) {
                     using (var gfxSettingsXmlReader = XmlReader.Create(gfxSettingsFileStream, new XmlReaderSettings { Async = true })) {
@@ -201,6 +214,8 @@ namespace Blish_HUD.GameIntegration {
 
                             Logger.Trace($"Loaded {settingName} = {settingValue} from GSA.");
 
+                            this.IsAvailable = true;
+
                             GfxSettingsReloaded?.Invoke(this, EventArgs.Empty);
                         }
                     }
@@ -208,13 +223,18 @@ namespace Blish_HUD.GameIntegration {
                     gfxSettingsFileStream.Dispose();
 
                     Logger.Debug("Finished parsing GSA file.");
+
+                    // Easiest place to check where we should now know if the user is in fullscreen or not
+                    if (this.IsAvailable) {
+                        ContingencyChecks.CheckForFullscreenDx9Conflict();
+                    }
                 }
             } catch (IOException ex) {
                 if (remainingAttempts > 0) {
                     // GW2 is likely still locking the file and should be done very soon.
                     Logger.Debug("Failed to read GSA file.  Trying again...");
                     await Task.Delay(100);
-                    await LoadGfxSettings(--remainingAttempts);
+                    await LoadGfxSettings(remainingAttempts - 1);
                 } else {
                     Logger.Warn(ex, $"Failed to parse GfxSettings after {FILELOCKED_ATTEMPTS} attempts.");
                 }
@@ -229,9 +249,11 @@ namespace Blish_HUD.GameIntegration {
 
         public override void Unload() {
             _service.Gw2Instance.Gw2Started -= Gw2Proc_Gw2Started;
-            _fileSystemWatcher.Changed  -= GfxSettingsFileChanged;
 
-            _fileSystemWatcher.Dispose();
+            if (_fileSystemWatcher != null) {
+                _fileSystemWatcher.Changed -= GfxSettingsFileChanged;
+                _fileSystemWatcher.Dispose();
+            }
         }
     }
 }
