@@ -15,7 +15,7 @@ namespace Blish_HUD.Overlay {
 
         private const string UPDATE_SETTINGS = nameof(OverlayUpdateHandler) + "Configuration";
 
-        private const string DEFAULT_CORERELEASE_URL = "https://versions.blishhud.com/all.json";
+        private const string DEFAULT_CORERELEASE_URL = "https://versions.blishhud.com/all.json?cv={0}";
 
         private CoreVersionManifest[] _availableUpdates = Array.Empty<CoreVersionManifest>();
 
@@ -50,7 +50,7 @@ namespace Blish_HUD.Overlay {
 
         public override void Load() {
             DefineOverlayUpdateSettings(GameService.Settings.RegisterRootSettingCollection(UPDATE_SETTINGS));
-            BeginLoadReleases(DEFAULT_CORERELEASE_URL);
+            BeginLoadReleases(string.Format(DEFAULT_CORERELEASE_URL, Program.OverlayVersion.BaseAndPrerelease()));
         }
 
         private void DefineOverlayUpdateSettings(SettingCollection settingCollection) {
