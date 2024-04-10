@@ -522,6 +522,24 @@ namespace Blish_HUD.Strings.GameServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to When enabled, Blish HUD will mute itself when the game does not emit any sound either..
+        /// </summary>
+        internal static string Setting_MuteIfNoGameAudio_Description {
+            get {
+                return ResourceManager.GetString("Setting_MuteIfNoGameAudio_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mute when Game is muted..
+        /// </summary>
+        internal static string Setting_MuteIfNoGameAudio_DisplayName {
+            get {
+                return ResourceManager.GetString("Setting_MuteIfNoGameAudio_DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to When enabled, Blish HUD will be shown in the taskbar while running..
         /// </summary>
         internal static string Setting_ShowInTaskbar_Description {

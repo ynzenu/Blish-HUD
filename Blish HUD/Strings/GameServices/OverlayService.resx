@@ -302,16 +302,13 @@ WARNING: Prerelease modules or Blish HUD versions may be unstable.  By enabling 
   <data name="About_DiscordCallToAction1" xml:space="preserve">
     <value> 
 The majority of Blish HUD's feedback, development, and other discussions take place in our</value>
-    
   </data>
   <data name="About_DiscordCallToAction2" xml:space="preserve">
     <value>Discord</value>
-    
   </data>
   <data name="About_DiscordCallToAction3" xml:space="preserve">
     <value> channel.
  </value>
-    
   </data>
   <data name="About_DiscordCallToAction_Question" xml:space="preserve">
     <value> 
@@ -323,5 +320,11 @@ participate in the conversation?</value>
   </data>
   <data name="SelfUpdate_NewPrereleaseAvailable" xml:space="preserve">
     <value>New Prerelease Available</value>
+  </data>
+  <data name="Setting_MuteIfNoGameAudio_Description" xml:space="preserve">
+    <value>When enabled, Blish HUD will mute itself when the game does not emit any sound either.</value>
+  </data>
+  <data name="Setting_MuteIfNoGameAudio_DisplayName" xml:space="preserve">
+    <value>Mute when Game is muted.</value>
   </data>
 </root>
