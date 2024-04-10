@@ -144,11 +144,15 @@ namespace Blish_HUD {
 
         protected override void Unload() {
             Gw2Mumble.Info.ProcessIdChanged -= Start;
-            _arcDpsClientCancellationTokenSource.Cancel();
-            _arcDpsClientCancellationTokenSource.Dispose();
-            _stopwatch.Stop();
-            _arcDpsClient.Disconnect();
-            _arcDpsClient.Error -= SocketErrorHandler;
+            _arcDpsClientCancellationTokenSource?.Cancel();
+            _arcDpsClientCancellationTokenSource?.Dispose();
+            _stopwatch?.Stop();
+            _arcDpsClient?.Disconnect();
+            
+            if (_arcDpsClient != null) {
+                _arcDpsClient.Error -= SocketErrorHandler;
+            }
+
             this.RenderPresent = false;
         }
 
