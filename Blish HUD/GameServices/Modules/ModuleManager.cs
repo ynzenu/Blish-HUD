@@ -18,6 +18,12 @@ namespace Blish_HUD.Modules {
         public event EventHandler<EventArgs> ModuleEnabled;
         public event EventHandler<EventArgs> ModuleDisabled;
 
+        public event EventHandler<EventArgs> ModuleLoaded;
+
+        public void OnModuleLoaded(object _, EventArgs e) {
+            this.ModuleLoaded?.Invoke(this, e);
+        }
+
         private Assembly _moduleAssembly;
         
         private bool _forceAllowDependency = false;
@@ -84,6 +90,8 @@ namespace Blish_HUD.Modules {
                             _dirtyNamespaces.Add(this.Manifest.Namespace);
                         }
 
+                        this.ModuleInstance.ModuleLoaded += OnModuleLoaded;
+
                         this.Enabled = true;
 
                         try {
@@ -112,6 +120,10 @@ namespace Blish_HUD.Modules {
             if (!this.Enabled) return;
 
             this.Enabled = false;
+
+            if (this.ModuleInstance != null) {
+                this.ModuleInstance.ModuleLoaded -= OnModuleLoaded;
+            }
 
             try {
                 this.ModuleInstance?.Dispose();
@@ -246,7 +258,9 @@ namespace Blish_HUD.Modules {
             GameService.Module.UnregisterModule(this);
 
             this.ModuleEnabled = null;
-            this.ModuleEnabled = null;
+            this.ModuleDisabled = null;
+
+            this.ModuleLoaded = null;
 
             _moduleAssembly = null;
 
