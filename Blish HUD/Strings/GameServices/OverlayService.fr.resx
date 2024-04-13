@@ -264,6 +264,6 @@ Guild Wars 2 et Blish HUD.</value>
     <value>Lorsque cette option est activée, Blish HUD se met en sourdine lorsque le jeu n'émet aucun son.</value>
   </data>
   <data name="Setting_MuteIfNoGameAudio_DisplayName" xml:space="preserve">
-    <value>Mute lorsque le jeu est en sourdine.</value>
+    <value>Muet lorsque le son du jeu est coupé.</value>
   </data>
 </root>
