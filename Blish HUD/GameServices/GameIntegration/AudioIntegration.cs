@@ -13,6 +13,8 @@ namespace Blish_HUD.GameIntegration {
     public sealed class AudioIntegration : ServiceModule<GameIntegrationService> {
         private static readonly Logger Logger = Logger.GetLogger<AudioIntegration>();
 
+        public event EventHandler<ValueEventArgs<float>> VolumeChanged;
+
         public enum Devices {
             [Description("GW2 Output Device")]
             Gw2OutputDevice,
@@ -42,14 +44,21 @@ namespace Blish_HUD.GameIntegration {
         private double _timeSinceAudioDeviceUpdate = 0;
 
         private float? _volume;
-
         /// <summary>
         /// This either provides  an estimated volume level for the application
         /// based on the volumes levels exhibited by the game
         /// or
         /// the set volume in settings.
         /// </summary>
-        public float Volume => _volume ??= GetVolume();
+        public float Volume {
+            get => _volume ??= GetVolume();
+            private set {
+                if (Math.Abs(_volume.GetValueOrDefault() - value) > 0.0001f) {
+                    VolumeChanged?.Invoke(this, new ValueEventArgs<float>(value));
+                }
+                _volume = value;
+            }
+        }
 
         /// <summary>
         /// Current used AudioDevice. This either the same as GW2 is using
@@ -123,7 +132,7 @@ namespace Blish_HUD.GameIntegration {
                     Logger.Debug(e, "Getting meter volume failed.");
                 }
 
-                _volume = null;
+                this.Volume = GetVolume();
             }
 
             if (_timeSinceAudioDeviceUpdate > AUDIO_DEVICE_UPDATE_INTERVAL) {
