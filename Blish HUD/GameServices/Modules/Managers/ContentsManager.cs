@@ -1,7 +1,7 @@
 ﻿using Blish_HUD.Content;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
-using SpriteFontPlus;
+using MonoGame.Extended.BitmapFonts;
 using System;
 using System.IO;
 
@@ -92,41 +92,8 @@ namespace Blish_HUD.Modules.Managers {
             return null;
         }
 
-        /// <summary>
-        /// Loads a <see cref="SpriteFont"/> from a TrueTypeFont (*.ttf) file.
-        /// </summary>
-        /// <param name="fontPath">The path to the TTF font file.</param>
-        /// <param name="fontSize">Size of the font.</param>
-        /// <param name="textureSize">Size of the <see cref="SpriteFont.Texture"/>.<br/>A greater <c>fontSize</c> results in bigger glyphs which may require more texture space.</param>
-        public SpriteFont GetSpriteFont(string fontPath, int fontSize, int textureSize = 1392) {
-            if (fontSize <= 0) {
-                throw new ArgumentException("Font size must be greater than 0.", nameof(fontSize));
-            }
-
-            if (textureSize <= 0) {
-                throw new ArgumentException("Texture size must be greater than 0.", nameof(textureSize));
-            }
-
-            long fontDataLength = _reader.GetFileBytes(fontPath, out byte[] fontData);
-
-            if (fontDataLength > 0) {
-                using var ctx = GameService.Graphics.LendGraphicsDeviceContext();
-                var bakeResult = TtfFontBaker.Bake(fontData, fontSize, textureSize, textureSize, ContentService.Gw2CharacterRange);
-                return bakeResult.CreateSpriteFont(ctx.GraphicsDevice);
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Loads a <see cref="BitmapFontEx"/> from a TrueTypeFont (*.ttf) file.
-        /// </summary>
-        /// <param name="fontPath">The path to the TTF font file.</param>
-        /// <param name="fontSize">Size of the font.</param>
-        /// <param name="lineHeight">Sets the line height. By default, <see cref="SpriteFont.LineSpacing"/> will be used.</param>
-        /// <param name="textureSize">Size of the <see cref="SpriteFont.Texture"/>.<br/>A greater <c>fontSize</c> results in bigger glyphs which may require more texture space.</param>
-        public BitmapFontEx GetBitmapFont(string fontPath, int fontSize, int lineHeight = 0, int textureSize = 1392) {
-            return GetSpriteFont(fontPath, fontSize, textureSize)?.ToBitmapFont(lineHeight);
+        public BitmapFont GetBitmapFont(string fontPath) {
+            throw new NotImplementedException();
         }
 
         /// <summary>
