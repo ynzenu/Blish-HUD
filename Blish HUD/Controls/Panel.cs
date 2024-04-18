@@ -256,7 +256,7 @@ namespace Blish_HUD.Controls {
 
             _layoutHeaderBounds     = new Rectangle(this.ContentRegion.Left,       0, this.ContentRegion.Width,       HEADER_HEIGHT);
 
-            if (_icon?.HasTexture != null) {
+            if (_icon?.HasTexture == true) {
 
                 _layoutHeaderIconBounds = new Rectangle(_layoutHeaderBounds.Left + 3, 3, HEADER_HEIGHT - 6, HEADER_HEIGHT - 6);
                 _layoutHeaderTextBounds = new Rectangle(_layoutHeaderIconBounds.Right + 5, 0, _layoutHeaderBounds.Width - _layoutHeaderIconBounds.Width, HEADER_HEIGHT);
@@ -352,7 +352,7 @@ namespace Blish_HUD.Controls {
                 }
 
                 // Panel header icon
-                if (_icon?.HasTexture != null) {
+                if (_icon?.HasTexture == true) {
                     spriteBatch.DrawOnCtrl(this, _icon, _layoutHeaderIconBounds, Color.White);
                 }
 
