@@ -23,9 +23,9 @@ namespace Blish_HUD {
         /// </summary>
         public event EventHandler<ValueEventArgs<bool>> IsAvailableChanged;
 
-        private void OnIsAvailableChanged(ValueEventArgs<bool> e) => IsAvailableChanged?.Invoke(this, e);
+        private void OnIsAvailableChanged(ValueEventArgs<bool?> e) => IsAvailableChanged?.Invoke(this, new ValueEventArgs<bool>(e.Value.Value));
 
-        private bool _prevIsAvailable = false;
+        private bool? _prevIsAvailable = null;
 
         private void HandleEvents() {
             MumbleEventImpl.CheckAndHandleEvent(ref _prevIsAvailable, this.IsAvailable, OnIsAvailableChanged);
