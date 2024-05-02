@@ -97,7 +97,6 @@ namespace Blish_HUD {
         private async Task UpdateActiveApiKey() {
             if (_characterRepository.TryGetValue(Gw2Mumble.PlayerCharacter.Name, out string charApiKey)) {
                 await UpdateBaseConnection(charApiKey);
-                Logger.Debug($"Associated key {charApiKey} with user {Gw2Mumble.PlayerCharacter.Name}.");
             } else {
                 if (!string.IsNullOrWhiteSpace(Gw2Mumble.PlayerCharacter.Name)) {
                     // We skip the message if no user is defined yet.
