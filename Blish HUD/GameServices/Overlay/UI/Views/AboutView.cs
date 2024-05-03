@@ -65,7 +65,7 @@ namespace Blish_HUD.Overlay.UI.Views {
             var discordSection = new Image(GameService.Content.GetTexture("views/about/section-splitter")) {
                 Parent          = aboutPanel,
                 Width           = aboutPanel.Width - 64,
-                Left            = 32 - 24,
+                Left            = 8,
                 Height          = 16,
                 Top             = lovePanel.Bottom,
                 Opacity = 0.5f
@@ -111,7 +111,7 @@ namespace Blish_HUD.Overlay.UI.Views {
             var bottomDiscordSection = new Image(GameService.Content.GetTexture("views/about/section-splitter")) {
                 Parent  = aboutPanel,
                 Width   = aboutPanel.Width - 64,
-                Left    = 32,
+                Left    = 8,
                 Height  = 16,
                 Top     = discordNote.Bottom + 8,
                 Opacity = 0.5f
@@ -139,6 +139,60 @@ namespace Blish_HUD.Overlay.UI.Views {
                 Height  = fadeBottom - fadeTop,
                 Parent  = aboutPanel,
                 Opacity = 0.4f
+            };
+
+            #endregion
+
+            #region "Available Updates"
+
+            var update = GameService.Overlay.OverlayUpdateHandler.GetUpdateAvailable();
+
+            if (update.Available) {
+                _ = new Label() {
+                    Parent = aboutPanel,
+                    Top = bottomDiscordSection.Bottom,
+                    Text = $"An update to Blish HUD v{update.NewManifest.Version} is available!",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Middle,
+                    Left = 0,
+                    TextColor = Color.Orange,
+                    Width = aboutPanel.Width,
+                    Height = 50
+                };
+
+                var updateButton = new StandardButton() {
+                    Text = $"Update Blish HUD",
+                    Width = 164,
+                    Parent = aboutPanel
+                };
+                updateButton.Location = new Point(
+                    aboutPanel.Width / 2 - updateButton.Width / 2,
+                    bottomDiscordSection.Bottom + 45
+                );
+
+                updateButton.Click += (s, e) => {
+                    GameService.Overlay.OverlayUpdateHandler.ShowReleaseSplash(update.NewManifest, false);
+                };
+            } else {
+                _ = new Label() {
+                    Parent = aboutPanel,
+                    Top = bottomDiscordSection.Bottom,
+                    Text = "You are running the latest version of Blish HUD.",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Middle,
+                    Left = 0,
+                    Width = aboutPanel.Width,
+                    Height = 90
+                };
+            }
+
+            _ = new Image(GameService.Content.GetTexture("views/about/section-splitter")) {
+                Parent = aboutPanel,
+                Width = aboutPanel.Width - 64,
+                Left = 8,
+                Height = 16,
+                Top = fadeBottom + 90,
+                Opacity = 0.25f
             };
 
             #endregion
@@ -220,6 +274,5 @@ namespace Blish_HUD.Overlay.UI.Views {
                                                                                                                          ? Strings.GameServices.OverlayService.ConnectionStatus_ArcDPSBridge_Connected
                                                                                                                          : Strings.GameServices.OverlayService.ConnectionStatus_ArcDPSBridge_Disconnected)));
         }
-
     }
 }

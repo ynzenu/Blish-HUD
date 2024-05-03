@@ -93,7 +93,7 @@ namespace Blish_HUD.Overlay {
             }
         }
 
-        private void ShowReleaseSplash(CoreVersionManifest coreVersionManifest, bool subtle) {
+        internal void ShowReleaseSplash(CoreVersionManifest coreVersionManifest, bool subtle) {
             if (_activeUpdateWindow?.Parent == null) {
                 // Release old window.
                 _activeUpdateWindow = null;
@@ -106,6 +106,14 @@ namespace Blish_HUD.Overlay {
             if (!subtle) {
                 _activeUpdateWindow.Show();
             }
+        }
+
+        public (bool Available, CoreVersionManifest NewManifest) GetUpdateAvailable() {
+            if (this.LatestRelease.Version > Program.OverlayVersion) {
+                return (true, this.LatestRelease);
+            }
+
+            return (false, default);
         }
 
         public IEnumerable<ContextMenuStripItem> GetContextMenuItems() {
