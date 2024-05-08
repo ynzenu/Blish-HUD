@@ -10,6 +10,9 @@ namespace Blish_HUD.Input {
     /// Allows for actions to be ran as the result of a provided key combination.
     /// </summary>
     public class KeyBinding {
+
+        private static readonly HashSet<Keys> _acceptedPrimaryModifierKeys = new HashSet<Keys>() { Keys.LeftAlt, Keys.RightAlt, Keys.LeftControl, Keys.RightControl, Keys.LeftShift, Keys.RightShift };
+
         /// <summary>
         /// Fires when the keys of the <see cref="KeyBinding"/> are changed.
         /// </summary>
@@ -136,7 +139,7 @@ namespace Blish_HUD.Input {
         }
 
         private void CheckTrigger(ModifierKeys activeModifiers, IEnumerable<Keys> pressedKeys) {
-            if (activeModifiers == this.ModifierKeys) {
+            if (activeModifiers == this.ModifierKeys || _acceptedPrimaryModifierKeys.Contains(_primaryKey)) {
                 if (this.BlockSequenceFromGw2) {
                     GameService.Input.Keyboard.StageKeyBinding(this);
                 }
