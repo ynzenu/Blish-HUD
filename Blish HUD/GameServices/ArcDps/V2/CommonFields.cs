@@ -18,9 +18,9 @@ namespace Blish_HUD.GameServices.ArcDps.V2 {
         ///     Contains every player in the current group or squad.
         ///     Key: Character Name, Value: Account Name
         /// </summary>
-        public IReadOnlyDictionary<string, Player> PlayersInSquad => _playersInSquad;
+        public IReadOnlyDictionary<ulong, Player> PlayersInSquad => _playersInSquad;
 
-        private readonly ConcurrentDictionary<string, Player> _playersInSquad = new ConcurrentDictionary<string, Player>();
+        private readonly ConcurrentDictionary<ulong, Player> _playersInSquad = new ConcurrentDictionary<ulong, Player>();
 
         private bool _enabled;
 
@@ -41,16 +41,18 @@ namespace Blish_HUD.GameServices.ArcDps.V2 {
             if (_enabled) return;
 
             _enabled = true;
-            GameService.ArcDpsV2.RegisterMessageType<CombatCallback>(0, CombatHandler);
+            GameService.ArcDpsV2.RegisterMessageType<CombatCallback>(2, CombatHandler);
         }
 
         private Task CombatHandler(CombatCallback combatEvent, CancellationToken ct) {
+            if (!Equals(combatEvent.Event, default(CombatEvent))) return Task.CompletedTask;
+
             /* notify tracking change */
             if (combatEvent.Source.Elite != 0) return Task.CompletedTask;
 
             /* add */
             if (combatEvent.Source.Profession != 0) {
-                if (_playersInSquad.ContainsKey(combatEvent.Source.Name)) return Task.CompletedTask;
+                if (_playersInSquad.ContainsKey(combatEvent.Source.Id)) return Task.CompletedTask;
 
                 string accountName = combatEvent.Destination.Name.StartsWith(":")
                                          ? combatEvent.Destination.Name.Substring(1)
@@ -61,11 +63,11 @@ namespace Blish_HUD.GameServices.ArcDps.V2 {
                                         combatEvent.Destination.Profession, combatEvent.Destination.Elite, combatEvent.Destination.Self != 0
                                        );
 
-                if (_playersInSquad.TryAdd(combatEvent.Source.Name, player)) this.PlayerAdded?.Invoke(player);
+                if (_playersInSquad.TryAdd(combatEvent.Source.Id, player)) this.PlayerAdded?.Invoke(player);
             }
             /* remove */
             else {
-                if (_playersInSquad.TryRemove(combatEvent.Source.Name, out var player)) this.PlayerRemoved?.Invoke(player);
+                if (_playersInSquad.TryRemove(combatEvent.Source.Id, out var player)) this.PlayerRemoved?.Invoke(player);
             }
 
             return Task.CompletedTask;
