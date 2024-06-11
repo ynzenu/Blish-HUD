@@ -18,8 +18,8 @@ namespace Blish_HUD.ArcDps.Common {
         ///     Key: Character Name, Value: Account Name
         /// </summary>
         public IReadOnlyDictionary<string, Player> PlayersInSquad => GameService.ArcDpsV2.Common.PlayersInSquad
-            .Select(x => new KeyValuePair<string, Player>(x.Key, new Player(x.Value.CharacterName, x.Value.AccountName, x.Value.Profession, x.Value.Elite, x.Value.Self)))
-            .ToDictionary(x=> x.Key, x => x.Value);
+            .Select(x => new KeyValuePair<ulong, Player>(x.Key, new Player(x.Value.CharacterName, x.Value.AccountName, x.Value.Profession, x.Value.Elite, x.Value.Self)))
+            .ToDictionary(x=> x.Value.CharacterName, x => x.Value);
 
         /// <summary>
         ///     Gets invoked whenever someone joins the squad or group.
@@ -35,12 +35,12 @@ namespace Blish_HUD.ArcDps.Common {
         ///     Activates the <see cref="CommonFields" /> service.
         /// </summary>
         public void Activate() {
-            GameService.ArcDpsV2.Common.PlayerAdded += player => PlayerAdded?.Invoke(new Player(player.CharacterName, player.AccountName, player.Profession, player.Elite, player.Self));
-            GameService.ArcDpsV2.Common.PlayerRemoved += player => PlayerRemoved?.Invoke(new Player(player.CharacterName, player.AccountName, player.Profession, player.Elite, player.Self));
-
             if (_enabled) return;
 
-            _enabled                          =  true;
+            _enabled = true;
+            GameService.ArcDpsV2.Common.PlayerAdded   += player => PlayerAdded?.Invoke(new Player(player.CharacterName,   player.AccountName, player.Profession, player.Elite, player.Self));
+            GameService.ArcDpsV2.Common.PlayerRemoved += player => PlayerRemoved?.Invoke(new Player(player.CharacterName, player.AccountName, player.Profession, player.Elite, player.Self));
+            GameService.ArcDpsV2.Common.Activate();
         }
 
         public struct Player {
