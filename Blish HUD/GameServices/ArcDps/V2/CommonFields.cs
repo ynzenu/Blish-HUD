@@ -1,4 +1,4 @@
-﻿using Blish_HUD.GameServices.ArcDps.V2.Models;
+using Blish_HUD.GameServices.ArcDps.V2.Models;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -16,7 +16,7 @@ namespace Blish_HUD.GameServices.ArcDps.V2 {
 
         /// <summary>
         ///     Contains every player in the current group or squad.
-        ///     Key: Character Name, Value: Account Name
+        ///     Key: Agent ID, Value: Account Name
         /// </summary>
         public IReadOnlyDictionary<ulong, Player> PlayersInSquad => _playersInSquad;
 
