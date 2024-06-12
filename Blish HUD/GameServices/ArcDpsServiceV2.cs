@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -9,8 +10,11 @@ using System.Threading.Tasks;
 using Blish_HUD.ArcDps;
 using Blish_HUD.GameServices.ArcDps;
 using Blish_HUD.GameServices.ArcDps.V2;
+using Blish_HUD.GameServices.ArcDps.V2.Extensions;
 using Blish_HUD.GameServices.ArcDps.V2.Models;
+using Blish_HUD.GameServices.ArcDps.V2.Processors;
 using Microsoft.Xna.Framework;
+using SharpDX;
 
 namespace Blish_HUD {
 
@@ -69,6 +73,11 @@ namespace Blish_HUD {
             }
         }
 
+        public void RegisterMessageType<T>(MessageType type, Func<T, CancellationToken, Task> listener)
+            where T : struct {
+            RegisterMessageType<T>((int)type, listener);
+        }
+
         public void RegisterMessageType<T>(int type, Func<T, CancellationToken, Task> listener)
             where T : struct {
             Action action = () => _arcDpsClient.RegisterMessageTypeListener(type, listener);
@@ -120,7 +129,7 @@ namespace Blish_HUD {
                 _arcDpsClient.Error += SocketErrorHandler;
                 _arcDpsClient.Initialize(new IPEndPoint(IPAddress.Loopback, GetPort(processId, version)), _arcDpsClientCancellationTokenSource.Token);
 
-                RegisterMessageType<ImGuiCallback>(1, async (imGuiCallback, ct) => {
+                RegisterMessageType<ImGuiCallback>(MessageType.ImGui, async (imGuiCallback, ct) => {
                     this.HudIsActive = imGuiCallback.NotCharacterSelectOrLoading != 0;
                 });
             }

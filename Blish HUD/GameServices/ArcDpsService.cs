@@ -67,11 +67,11 @@ namespace Blish_HUD {
         public void SubscribeToCombatEventId(Action<object, RawCombatEventArgs> func, params uint[] skillIds) {
 
             if (!_subscribed) {
-                GameService.ArcDpsV2.RegisterMessageType<CombatCallback>(2, async (combatEvent, ct) => {
+                GameService.ArcDpsV2.RegisterMessageType<CombatCallback>(GameServices.ArcDps.V2.MessageType.CombatEventArea, async (combatEvent, ct) => {
                     DispatchSkillSubscriptions(combatEvent, RawCombatEventArgs.CombatEventType.Area);
                     await System.Threading.Tasks.Task.CompletedTask;
                 });
-                GameService.ArcDpsV2.RegisterMessageType<CombatCallback>(3, async (combatEvent, ct) => {
+                GameService.ArcDpsV2.RegisterMessageType<CombatCallback>(GameServices.ArcDps.V2.MessageType.CombatEventLocal, async (combatEvent, ct) => {
                     DispatchSkillSubscriptions(combatEvent, RawCombatEventArgs.CombatEventType.Local);
                     await System.Threading.Tasks.Task.CompletedTask;
                 });
@@ -117,13 +117,13 @@ namespace Blish_HUD {
             this.RawCombatEvent += (a, b) => { Interlocked.Increment(ref Counter); };
 #endif
 
-            GameService.ArcDpsV2.RegisterMessageType<CombatCallback>(2, async (combatEvent, ct) => {
+            GameService.ArcDpsV2.RegisterMessageType<CombatCallback>(GameServices.ArcDps.V2.MessageType.CombatEventArea, async (combatEvent, ct) => {
                 var rawCombat = ConvertFrom(combatEvent, RawCombatEventArgs.CombatEventType.Area);
                 this.RawCombatEvent?.Invoke(this, rawCombat);
                 await System.Threading.Tasks.Task.CompletedTask;
             });
 
-            GameService.ArcDpsV2.RegisterMessageType<CombatCallback>(3, async (combatEvent, ct) => {
+            GameService.ArcDpsV2.RegisterMessageType<CombatCallback>(GameServices.ArcDps.V2.MessageType.CombatEventLocal, async (combatEvent, ct) => {
                 var rawCombat = ConvertFrom(combatEvent, RawCombatEventArgs.CombatEventType.Local);
                 this.RawCombatEvent?.Invoke(this, rawCombat);
                 await System.Threading.Tasks.Task.CompletedTask;

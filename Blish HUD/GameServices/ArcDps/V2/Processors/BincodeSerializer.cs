@@ -23,7 +23,7 @@ namespace Blish_HUD.GameServices.ArcDps.V2.Processors {
         }
 
         public static class IntConverter {
-            public static bool UseVarint { get; set; } = true;
+            public static bool UseVarint { get; set; } = false;
 
             public class VarintEncoding {
                 public static readonly VarintEncoding Instance = new VarintEncoding();

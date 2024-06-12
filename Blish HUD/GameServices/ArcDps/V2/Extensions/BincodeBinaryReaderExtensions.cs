@@ -6,10 +6,19 @@ namespace Blish_HUD.GameServices.ArcDps.V2.Extensions {
     public static class BincodeBinaryReaderExtensions {
         public static CombatCallback ParseCombatCallback(this BincodeBinaryReader reader) {
             var result = default(CombatCallback);
-            result.Event = reader.ParseCombatEvent();
-            result.Source = reader.ParseAgent();
-            result.Destination = reader.ParseAgent();
-            result.SkillName = reader.Convert.ParseString();
+            if (reader.Convert.ParseByte() == 1) {
+                result.Event = reader.ParseCombatEvent();
+            }
+            if (reader.Convert.ParseByte() == 1) {
+                result.Source = reader.ParseAgent();
+            }
+            if (reader.Convert.ParseByte() == 1) {
+                result.Destination = reader.ParseAgent();
+            }
+            if (reader.Convert.ParseByte() == 1) {
+                result.SkillName = reader.Convert.ParseString();
+            }
+
             result.Id = reader.Convert.ParseULong();
             result.Revision = reader.Convert.ParseULong();
 
@@ -50,7 +59,9 @@ namespace Blish_HUD.GameServices.ArcDps.V2.Extensions {
 
         public static Agent ParseAgent(this BincodeBinaryReader reader) {
             var result = default(Agent);
-            result.Name = reader.Convert.ParseString();
+            if (reader.Convert.ParseByte() == 1) {
+                result.Name = reader.Convert.ParseString();
+            }
             result.Id = reader.Convert.ParseUSize();
             result.Profession = reader.Convert.ParseUInt();
             result.Elite = reader.Convert.ParseUInt();
