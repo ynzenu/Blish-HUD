@@ -1,24 +1,16 @@
 ﻿using Blish_HUD.GameServices.ArcDps.Models.UnofficialExtras;
 using Blish_HUD.GameServices.ArcDps.V2.Models;
 using Blish_HUD.GameServices.ArcDps.V2.Processors;
+using System;
 
 namespace Blish_HUD.GameServices.ArcDps.V2.Extensions {
     public static class BincodeBinaryReaderExtensions {
         public static CombatCallback ParseCombatCallback(this BincodeBinaryReader reader) {
             var result = default(CombatCallback);
-            if (reader.Convert.ParseByte() == 1) {
-                result.Event = reader.ParseCombatEvent();
-            }
-            if (reader.Convert.ParseByte() == 1) {
-                result.Source = reader.ParseAgent();
-            }
-            if (reader.Convert.ParseByte() == 1) {
-                result.Destination = reader.ParseAgent();
-            }
-            if (reader.Convert.ParseByte() == 1) {
-                result.SkillName = reader.Convert.ParseString();
-            }
-
+            result.Event = ParseOptional(reader, reader.ParseCombatEvent);
+            result.Source = ParseOptional(reader, reader.ParseAgent);
+            result.Destination = ParseOptional(reader, reader.ParseAgent);
+            result.SkillName = ParseOptional(reader, reader.Convert.ParseString);
             result.Id = reader.Convert.ParseULong();
             result.Revision = reader.Convert.ParseULong();
 
@@ -59,9 +51,7 @@ namespace Blish_HUD.GameServices.ArcDps.V2.Extensions {
 
         public static Agent ParseAgent(this BincodeBinaryReader reader) {
             var result = default(Agent);
-            if (reader.Convert.ParseByte() == 1) {
-                result.Name = reader.Convert.ParseString();
-            }
+            result.Name = ParseOptional(reader, reader.Convert.ParseString);
             result.Id = reader.Convert.ParseUSize();
             result.Profession = reader.Convert.ParseUInt();
             result.Elite = reader.Convert.ParseUInt();
@@ -72,7 +62,7 @@ namespace Blish_HUD.GameServices.ArcDps.V2.Extensions {
 
         public static UserInfo ParseUserInfo(this BincodeBinaryReader reader) {
             var result = default(UserInfo);
-            result.AccountName = reader.Convert.ParseString();
+            result.AccountName = ParseOptional(reader, reader.Convert.ParseString);
             result.JoinTime = reader.Convert.ParseULong();
             result.Role = ParseEnum((byte)reader.Convert.ParseUInt(), (int)UserRole.None, UserRole.None);
             result.Subgroup = reader.Convert.ParseByte();
@@ -82,14 +72,13 @@ namespace Blish_HUD.GameServices.ArcDps.V2.Extensions {
             return result;
         }
 
-        public static ChatMessageInfo ParseChatMessageInfo(BincodeBinaryReader reader) {
+        public static ChatMessageInfo ParseChatMessageInfo(this BincodeBinaryReader reader) {
             var result = default(ChatMessageInfo);
             result.ChannelId = reader.Convert.ParseUInt();
             result.ChannelType = ParseEnum((byte)reader.Convert.ParseUInt(), (int)ChannelType.Invalid, ChannelType.Invalid);
             result.Subgroup = reader.Convert.ParseByte();
             result.IsBroadcast = reader.Convert.ParseBool();
-            result._unused1 = reader.Convert.ParseByte();
-            result.TimeStamp = reader.Convert.ParseString();
+            result.TimeStamp = DateTime.Parse(reader.Convert.ParseString());
             result.AccountName = reader.Convert.ParseString();
             result.CharacterName = reader.Convert.ParseString();
             result.Text = reader.Convert.ParseString();
@@ -104,6 +93,13 @@ namespace Blish_HUD.GameServices.ArcDps.V2.Extensions {
             }
 
             return (T)(object)enumByteValue;
+        }
+
+        private static T ParseOptional<T>(BincodeBinaryReader reader, Func<T> parse) {
+            if (reader.ReadByte() == 1) {
+                return parse();
+            }
+            return default;
         }
     }
 

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Blish_HUD.ArcDps;
 using Blish_HUD.GameServices.ArcDps;
+using Blish_HUD.GameServices.ArcDps.Models.UnofficialExtras;
 using Blish_HUD.GameServices.ArcDps.V2;
 using Blish_HUD.GameServices.ArcDps.V2.Extensions;
 using Blish_HUD.GameServices.ArcDps.V2.Models;
@@ -54,7 +55,7 @@ namespace Blish_HUD {
         /// <summary>
         ///     Indicates if the socket listener for the arcdps service is running and arcdps sent an update in the last second.
         /// </summary>
-        public bool Running => (this._arcDpsClient?.Client.Connected ?? false) && this.RenderPresent;
+        public bool Running => (this._arcDpsClient?.Client?.Connected ?? false) && this.RenderPresent;
 
         /// <summary>
         ///     Indicates if arcdps currently draws its HUD (not in character select, cut scenes or loading screens)
@@ -72,6 +73,9 @@ namespace Blish_HUD {
                 }
             }
         }
+
+        public bool IsMessageTypeAvailable(MessageType type)
+            => _arcDpsClient.IsMessageTypeAvailable(type);
 
         public void RegisterMessageType<T>(MessageType type, Func<T, CancellationToken, Task> listener)
             where T : struct {
@@ -157,7 +161,7 @@ namespace Blish_HUD {
             _arcDpsClientCancellationTokenSource?.Dispose();
             _stopwatch?.Stop();
             _arcDpsClient?.Disconnect();
-            
+
             if (_arcDpsClient != null) {
                 _arcDpsClient.Error -= SocketErrorHandler;
             }

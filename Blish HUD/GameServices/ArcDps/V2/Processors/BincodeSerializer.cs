@@ -23,7 +23,7 @@ namespace Blish_HUD.GameServices.ArcDps.V2.Processors {
         }
 
         public static class IntConverter {
-            public static bool UseVarint { get; set; } = false;
+            public static bool UseVarint { get; set; } = true;
 
             public class VarintEncoding {
                 public static readonly VarintEncoding Instance = new VarintEncoding();
@@ -69,9 +69,6 @@ namespace Blish_HUD.GameServices.ArcDps.V2.Processors {
                 }
 
                 public static byte ConvertUnsigned(BinaryReader reader) {
-                    if (UseVarint) {
-                        return (byte)VarintEncoding.Instance.ConvertUnsigned(reader);
-                    }
                     return reader.ReadByte();
                 }
             }
