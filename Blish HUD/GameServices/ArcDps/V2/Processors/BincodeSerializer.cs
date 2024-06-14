@@ -69,9 +69,6 @@ namespace Blish_HUD.GameServices.ArcDps.V2.Processors {
                 }
 
                 public static byte ConvertUnsigned(BinaryReader reader) {
-                    if (UseVarint) {
-                        return (byte)VarintEncoding.Instance.ConvertUnsigned(reader);
-                    }
                     return reader.ReadByte();
                 }
             }
