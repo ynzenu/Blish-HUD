@@ -265,4 +265,7 @@ Lade einige herunter und platziere sie im Modulverzeichnis.</value>
   <data name="PkgManagement_MoreInfo" xml:space="preserve">
     <value>Mehr Info</value>
   </data>
+  <data name="ApiPermission_NotEditable" xml:space="preserve">
+    <value>Berechtigungen können nur bearbeitet werden, wenn das Modul deaktiviert ist.</value>
+  </data>
 </root>

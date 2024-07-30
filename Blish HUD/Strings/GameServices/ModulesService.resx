@@ -248,4 +248,7 @@ Download some modules and place them in the modules folder.</value>
   <data name="PkgManagement_MoreInfo" xml:space="preserve">
     <value>More Info</value>
   </data>
+  <data name="ApiPermission_NotEditable" xml:space="preserve">
+    <value>Permissions may only be edited, when the module is disabled.</value>
+  </data>
 </root>
