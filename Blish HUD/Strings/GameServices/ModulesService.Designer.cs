@@ -79,6 +79,15 @@ namespace Blish_HUD.Strings.GameServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Permissions may only be edited, when the module is disabled..
+        /// </summary>
+        internal static string ApiPermission_NotEditable {
+            get {
+                return ResourceManager.GetString("ApiPermission_NotEditable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Optional.
         /// </summary>
         internal static string ApiPermission_Optional {
