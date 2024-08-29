@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Linq;
 using Blish_HUD.Controls.Effects;
@@ -67,7 +67,7 @@ namespace Blish_HUD.Controls {
 
         #region Textures
 
-        private readonly AsyncTexture2D _textureFillCrest              = AsyncTexture2D.FromAssetId(605004);
+        private readonly AsyncTexture2D _textureFillCrest              = Content.GetTexture(@"controls/detailsbutton/605004");
         private readonly AsyncTexture2D _textureVignette               = AsyncTexture2D.FromAssetId(605003);
         private readonly AsyncTexture2D _textureCornerButton           = AsyncTexture2D.FromAssetId(605011);
         private readonly AsyncTexture2D _textureBottomSectionSeparator = AsyncTexture2D.FromAssetId(157218);
