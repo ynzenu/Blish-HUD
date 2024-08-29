@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using Blish_HUD.Controls.Effects;
@@ -342,7 +342,7 @@ namespace Blish_HUD.Controls {
 
                     // Only show the fill crest if we aren't full
                     if (fillPercent < 0.99)
-                        spriteBatch.DrawOnCtrl(this, _textureFillCrest,  new Rectangle(0, iconSize - (int) (fillSpace), iconSize, iconSize));
+                        spriteBatch.DrawOnCtrl(this, _textureFillCrest,  new Rectangle(0, iconSize - (int) (fillSpace), iconSize, (int)fillSpace));
                 }
 
                 if (_showFillFraction)
