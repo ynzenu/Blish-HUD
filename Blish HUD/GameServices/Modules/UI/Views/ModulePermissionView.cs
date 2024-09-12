@@ -48,7 +48,7 @@ namespace Blish_HUD.Modules.UI.Views {
                 Size                = buildPanel.ContentRegion.Size,
                 Visible             = false,
                 FlowDirection       = ControlFlowDirection.TopToBottom,
-                ControlPadding      = new Vector2(14, 15),
+                ControlPadding      = new Vector2(14, 1),
                 OuterControlPadding = new Vector2(15, 13),
                 Parent              = buildPanel
             };
