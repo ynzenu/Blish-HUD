@@ -62,7 +62,7 @@ namespace Blish_HUD.Modules.UI.Presenters {
         }
 
         private void UpdateStatus() {
-            if (this.Model.Enabled && this.Model.Manifest.ApiPermissions.Any()) {
+            if (Model.Enabled) {
                 this.View.SetDetails(Strings.GameServices.ModulesService.ApiPermission_NotEditable,
                                      TitledDetailView.DetailLevel.Info);
             } else {
