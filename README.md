@@ -1,7 +1,5 @@
 ﻿# Blish HUD
-[![Build status](https://ci.appveyor.com/api/projects/status/43fg2d3hy4jt5ip1?svg=true)](https://ci.appveyor.com/project/dlamkins/blish-hud/branch/dev/artifacts)
 [![Discord](https://img.shields.io/discord/531175899588984842.svg?logo=discord&logoColor=%237289DA)](https://discord.gg/FYKN3qh)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=dev&project=blish-hud_Blish-HUD&metric=alert_status)](https://sonarcloud.io/dashboard?id=blish-hud_Blish-HUD&branch=dev)
 
 **Visit our site:** https://blishhud.com
 
@@ -27,10 +25,6 @@ Visit our [#💢help](https://discord.gg/qJdUhdG) channel in Discord.
 - [Blish HUD FAQ](https://blishhud.com/docs/user/faq) - Frequently asked questions.
 - [Troubleshooting Guide](https://blishhud.com/docs/user/troubleshooting/) - Our troubleshooting guide.
 - [Arcdps Blish HUD Integration](https://github.com/blish-hud/arcdps-bhud) - a plugin that uses the Arcdps Combat API and exposes some of the data to Blish HUD for compatible modules.
-
-### Marker Pack Support
-- [Pathing Module Setup Guide](https://blishhud.com/docs/markers/) - Video and written guide for using the pathing module for TacO marker packs.
-- [Marker Pack Development](https://blishhud.com/docs/markers/development/attributes) - Details on the marker pack format along with attribute support.
 
 ## For Developers
 
